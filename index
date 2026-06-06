@@ -285,9 +285,6 @@ spawn(function()
         end)
     end
 end)
-if _G.linkdis == nil then
-    _G.linkdis = 111
-end
 local v18 = Instance.new("ScreenGui")
 local vu19 = Instance.new("Frame")
 local vu20 = Instance.new("TextLabel")
@@ -874,6 +871,18 @@ function make_mainframe(p95, p96, p97, p98, p99)
     local closecorner = Instance.new("UICorner")
     closecorner.CornerRadius = UDim.new(0, 6)
     closecorner.Parent = closebtn
+    local gamename = Instance.new("TextLabel")
+    gamename.Name = "gamename"
+    gamename.Parent = p95
+    gamename.BackgroundTransparency = 1
+    gamename.Position = UDim2.new(1, -244, 0, 4)
+    gamename.Size = UDim2.new(0, 174, 0, 22)
+    gamename.Font = Enum.Font.GothamBold
+    gamename.Text = "King Legacy"
+    gamename.TextColor3 = Color3.fromRGB(255, 255, 255)
+    gamename.TextSize = 16
+    gamename.TextXAlignment = Enum.TextXAlignment.Right
+    gamename.ZIndex = 5
     local minimized = false
     minbtn.MouseButton1Click:Connect(function()
         minimized = not minimized
@@ -1125,35 +1134,27 @@ function make_slider_value(p121, pu122, pu123, pu124, p125, pu126)
     vu131.Text = pu122 .. " : " .. tostring(_(pu126))
 end
 function make_onof(pu144, p145)
-    local vu146 = Instance.new("TextButton")
+    local vu146 = Instance.new("ImageButton")
     local v147 = Instance.new("UICorner")
     vu146.Parent = p145
     vu146.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
     vu146.Position = UDim2.new(0.15162201, 0, 0.233285708, 0)
     vu146.Size = UDim2.new(0, 50, 0, 50)
-    vu146.Font = Enum.Font.GothamBold
-    vu146.Text = "Open"
-    vu146.TextColor3 = Color3.fromRGB(255, 255, 255)
-    vu146.TextSize = 16
+    vu146.Image = load_image("https://i.ibb.co/6RtHFCvt/Logobotvip.png", "logo.png")
+    vu146.ScaleType = Enum.ScaleType.Fit
     vu146.BorderSizePixel = 0
     vu146.BorderColor3 = Color3.fromRGB(88, 101, 242)
-    vu146.Transparency = 0
+    vu146.AutoButtonColor = false
     v147.CornerRadius = UDim.new(0, 12)
     v147.Parent = vu146
+    local vu146open = false
     vu146.MouseButton1Down:connect(function()
-        if vu146.Text ~= "Open" then
-            if vu146.Text == "Close" then
-                vu146.Text = "Open"
-                pu144.Visible = false
-            end
-        else
-            vu146.Text = "Close"
-            pu144.Visible = true
-        end
+        vu146open = not vu146open
+        pu144.Visible = vu146open
     end)
 end
 make_screengui(v18)
-    make_mainframe(vu19, vu20, vu35, v18, "PRODE HUB | Main | " .. _G.linkdis)
+    make_mainframe(vu19, vu20, vu35, v18, "PRODE HUB | Main")
 make_onof(vu19, v18)
 v21.Name = "sea"
 v21.Parent = vu19
@@ -4946,40 +4947,40 @@ function b_page(p434, p435)
     vu20.Text = p435
 end
 v36.MouseButton1Down:connect(function()
-    b_page(vu22, "PRODE HUB | Main | " .. _G.linkdis)
+    b_page(vu22, "PRODE HUB | Main")
 end)
 v37.MouseButton1Down:connect(function()
-    b_page(vu23, "PRODE HUB | Start | " .. _G.linkdis)
+    b_page(vu23, "PRODE HUB | Start")
 end)
 v39.MouseButton1Down:connect(function()
-    b_page(vu25, "PRODE HUB | Setting | " .. _G.linkdis)
+    b_page(vu25, "PRODE HUB | Setting")
 end)
 v40.MouseButton1Down:connect(function()
-    b_page(vu26, "PRODE HUB | Teleport | " .. _G.linkdis)
+    b_page(vu26, "PRODE HUB | Teleport")
 end)
 v41.MouseButton1Down:connect(function()
-    b_page(vu27, "PRODE HUB | Combat | " .. _G.linkdis)
+    b_page(vu27, "PRODE HUB | Combat")
 end)
 v38.MouseButton1Down:connect(function()
-    b_page(vu24, "PRODE HUB | Player/Mod | " .. _G.linkdis)
+    b_page(vu24, "PRODE HUB | Player/Mod")
 end)
 v42.MouseButton1Down:connect(function()
-    b_page(vu28, "PRODE HUB | Item/Boss | " .. _G.linkdis)
+    b_page(vu28, "PRODE HUB | Item/Boss")
 end)
 v43.MouseButton1Down:connect(function()
-    b_page(vu29, "PRODE HUB | Sever | " .. _G.linkdis)
+    b_page(vu29, "PRODE HUB | Sever")
 end)
 v44.MouseButton1Down:connect(function()
-    b_page(vu30, "PRODE HUB | Dungeon | " .. _G.linkdis)
+    b_page(vu30, "PRODE HUB | Dungeon")
 end)
 v45.MouseButton1Down:connect(function()
-    b_page(vu31, "PRODE HUB | Fish | " .. _G.linkdis)
+    b_page(vu31, "PRODE HUB | Fish")
 end)
 v46.MouseButton1Down:connect(function()
-    b_page(vu32, "PRODE HUB | Esp | " .. _G.linkdis)
+    b_page(vu32, "PRODE HUB | Esp")
 end)
 v47.MouseButton1Down:connect(function()
-    b_page(vu33, "PRODE HUB | Shop | " .. _G.linkdis)
+    b_page(vu33, "PRODE HUB | Shop")
 end)
 _G.webhook = {
     sk = "https://discord.com/api/webhooks/1276927002359758930/VOB9dUxSgoZSYpuZAeBAGNxHLqXrkvGuOlhpLVS1wBky1UXDA4FtI5TQcQ1V5c5V_a-z",
