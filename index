@@ -482,6 +482,26 @@ end
 function __(p49, p50)
     _G.Setting[p49][1] = p50
 end
+function load_image(url, name)
+    local ok, result = pcall(function()
+        local getasset = (syn and syn.crypt and getcustomasset) or getcustomasset or getsynasset
+        if not (getasset and writefile and isfile) then
+            return nil
+        end
+        local path = "PRODE HUB/Assets/" .. name
+        if not isfolder("PRODE HUB") then makefolder("PRODE HUB") end
+        if not isfolder("PRODE HUB/Assets") then makefolder("PRODE HUB/Assets") end
+        if not isfile(path) then
+            local data = game:HttpGetAsync(url)
+            writefile(path, data)
+        end
+        return getasset(path)
+    end)
+    if ok and result then
+        return result
+    end
+    return ""
+end
 function make_screengui(p51)
     p51.Name = "name1"
     p51.Parent = game.CoreGui
@@ -492,7 +512,7 @@ function make_select3(p52, p53, p54, p55, p56, p57)
     p52.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
     p52.Position = p57
     p52.Size = UDim2.new(0, 498, 0, 30)
-    p52.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p52.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p52.Font = Enum.Font.Ubuntu
     p52.Text = ""
     p52.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -503,10 +523,10 @@ function make_select3(p52, p53, p54, p55, p56, p57)
     p53.Parent = p52
     p53.BackgroundColor3 = Color3.fromRGB(26, 30, 42)
     p53.Size = UDim2.new(0, 180, 0, 30)
-    p53.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p53.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p53.Font = Enum.Font.SourceSans
     p53.Text = p56
-    p53.TextColor3 = Color3.fromRGB(96, 165, 250)
+    p53.TextColor3 = Color3.fromRGB(88, 101, 242)
     p53.TextSize = 18
     p53.TextXAlignment = Enum.TextXAlignment.Left
     p54.Name = "name3"
@@ -514,10 +534,10 @@ function make_select3(p52, p53, p54, p55, p56, p57)
     p54.BackgroundColor3 = Color3.fromRGB(26, 30, 42)
     p54.Position = UDim2.new(0.94, 0, 0.12, 0)
     p54.Size = UDim2.new(0, 20, 0, 20)
-    p54.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p54.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p54.Font = Enum.Font.SourceSans
     p54.Text = ""
-    p54.TextColor3 = Color3.fromRGB(96, 165, 250)
+    p54.TextColor3 = Color3.fromRGB(88, 101, 242)
     p54.TextSize = 30
 end
 function make_mainscrollingframe(p58, _, p59)
@@ -538,7 +558,7 @@ function make_textlabel(p60, p61, p62)
     v63.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
     v63.Position = UDim2.new(0, 0, p62, 0)
     v63.Size = UDim2.new(0, 498, 0, 30)
-    v63.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    v63.BorderColor3 = Color3.fromRGB(88, 101, 242)
     v63.Font = Enum.Font.Ubuntu
     v63.Text = p61
     v63.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -552,7 +572,7 @@ function make_mainbutton(p64, p65, p66, p67)
     p64.Size = UDim2.new(0, 100, 0, 25)
     p64.Font = Enum.Font.Gotham
     p64.BorderSizePixel = 0
-    p64.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p64.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p64.Text = p66
     p64.TextColor3 = Color3.fromRGB(255, 255, 255)
     p64.TextSize = 14
@@ -562,7 +582,7 @@ function make_mainbutton(p64, p65, p66, p67)
     mbcorner.CornerRadius = UDim.new(0, 6)
     mbcorner.Parent = p64
     p64.MouseEnter:Connect(function()
-        p64.BackgroundColor3 = Color3.fromRGB(96, 165, 250)
+        p64.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
     end)
     p64.MouseLeave:Connect(function()
         p64.BackgroundColor3 = Color3.fromRGB(52, 60, 80)
@@ -573,7 +593,7 @@ function make_together(p68, p69, p70, p71, p72)
     p68.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
     p68.Position = UDim2.new(0, 0, p72, 0)
     p68.Size = UDim2.new(0, 498, 0, 30)
-    p68.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p68.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p68.Font = Enum.Font.Ubuntu
     p68.Text = p71
     p68.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -585,10 +605,10 @@ function make_together(p68, p69, p70, p71, p72)
     p69.BackgroundColor3 = Color3.fromRGB(26, 30, 42)
     p69.Position = UDim2.new(0.94, 0, 0.12, 0)
     p69.Size = UDim2.new(0, 20, 0, 20)
-    p69.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p69.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p69.Font = Enum.Font.SourceSans
     p69.Text = ""
-    p69.TextColor3 = Color3.fromRGB(96, 165, 250)
+    p69.TextColor3 = Color3.fromRGB(88, 101, 242)
     p69.TextSize = 30
 end
 function make_select2(p73, p74, p75, p76, p77, p78)
@@ -596,7 +616,7 @@ function make_select2(p73, p74, p75, p76, p77, p78)
     p73.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
     p73.Position = UDim2.new(0, 0, p78, 0)
     p73.Size = UDim2.new(0, 498, 0, 30)
-    p73.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p73.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p73.Font = Enum.Font.Ubuntu
     p73.Text = ""
     p73.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -607,10 +627,10 @@ function make_select2(p73, p74, p75, p76, p77, p78)
     p74.Parent = p73
     p74.BackgroundColor3 = Color3.fromRGB(26, 30, 42)
     p74.Size = UDim2.new(0, 350, 0, 30)
-    p74.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p74.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p74.Font = Enum.Font.SourceSans
     p74.Text = p77
-    p74.TextColor3 = Color3.fromRGB(96, 165, 250)
+    p74.TextColor3 = Color3.fromRGB(88, 101, 242)
     p74.TextSize = 18
     p74.TextXAlignment = Enum.TextXAlignment.Left
     p75.Name = "name3"
@@ -618,10 +638,10 @@ function make_select2(p73, p74, p75, p76, p77, p78)
     p75.BackgroundColor3 = Color3.fromRGB(26, 30, 42)
     p75.Position = UDim2.new(0.94, 0, 0.12, 0)
     p75.Size = UDim2.new(0, 20, 0, 20)
-    p75.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p75.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p75.Font = Enum.Font.SourceSans
     p75.Text = ""
-    p75.TextColor3 = Color3.fromRGB(96, 165, 250)
+    p75.TextColor3 = Color3.fromRGB(88, 101, 242)
     p75.TextSize = 30
 end
 function make_auto_selectbutton(p79, p80, p81, p82, p83, p84)
@@ -640,23 +660,33 @@ function make_selectbutton(pu86, pu87, p88, pu89, p90, pu91)
     name1.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
     name1.Position = p90
     name1.Size = UDim2.new(0, 340, 0, 20)
-    name1.BorderColor3 = Color3.fromRGB(96, 165, 250)
-    name1.Font = Enum.Font.Ubuntu
+    name1.BorderSizePixel = 0
+    name1.BorderColor3 = Color3.fromRGB(88, 101, 242)
+    name1.Font = Enum.Font.Gotham
     name1.Text = p88
     name1.TextColor3 = Color3.fromRGB(255, 255, 255)
     name1.TextSize = 14
     name1.TextWrapped = true
+    name1.ZIndex = 9
     name1.TextXAlignment = Enum.TextXAlignment.Left
+    local sbcorner = Instance.new("UICorner")
+    sbcorner.CornerRadius = UDim.new(0, 6)
+    sbcorner.Parent = name1
     name2 = Instance.new("TextButton")
     name2.Parent = name1
-    name2.BackgroundColor3 = Color3.fromRGB(96, 165, 250)
+    name2.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
     name2.Position = UDim2.new(0.8, 0, 0, 0)
     name2.Size = UDim2.new(0, 65, 0, 20)
+    name2.BorderSizePixel = 0
     name2.BorderColor3 = Color3.fromRGB(26, 30, 42)
-    name2.Font = Enum.Font.SourceSans
-    name2.Text = "Button"
-    name2.TextColor3 = Color3.fromRGB(26, 30, 42)
-    name2.TextSize = 14
+    name2.Font = Enum.Font.GothamBold
+    name2.Text = "Select"
+    name2.TextColor3 = Color3.fromRGB(255, 255, 255)
+    name2.TextSize = 13
+    name2.ZIndex = 10
+    local sb2corner = Instance.new("UICorner")
+    sb2corner.CornerRadius = UDim.new(0, 6)
+    sb2corner.Parent = name2
     name2.MouseButton1Down:connect(function()
         pu86.Text = pu89
         pu87.Visible = false
@@ -668,12 +698,21 @@ function make_selectscrollingframe(p92, p93, p94)
     p92.Parent = p93
     p92.Active = true
     p92.BackgroundColor3 = Color3.fromRGB(26, 30, 42)
-    p92.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p92.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p92.Position = UDim2.new(0, 0, p94, 0)
     p92.Size = UDim2.new(0, 350, 0, 140)
-    p92.BorderSizePixel = 1
-    p92.ZIndex = 2
+    p92.BorderSizePixel = 0
+    p92.ScrollBarThickness = 3
+    p92.ScrollBarImageColor3 = Color3.fromRGB(88, 101, 242)
+    p92.ZIndex = 8
     p92.Visible = false
+    local ssfcorner = Instance.new("UICorner")
+    ssfcorner.CornerRadius = UDim.new(0, 8)
+    ssfcorner.Parent = p92
+    local ssfstroke = Instance.new("UIStroke")
+    ssfstroke.Color = Color3.fromRGB(88, 101, 242)
+    ssfstroke.Thickness = 1
+    ssfstroke.Parent = p92
 end
 function make_mainframe(p95, p96, p97, p98, p99)
     p95.Name = "name1"
@@ -681,19 +720,61 @@ function make_mainframe(p95, p96, p97, p98, p99)
     p95.BackgroundColor3 = Color3.fromRGB(26, 30, 42)
     p95.Position = UDim2.new(0.180126051, 0, 0.228999169, 0)
     p95.Size = UDim2.new(0, 640, 0, 280)
-    p95.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p95.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p95.BorderSizePixel = 0
     p95.Active = true
-    p95.Draggable = true
+    p95.Draggable = false
+    p95.ClipsDescendants = true
     p95.Visible = false
     local mfcorner = Instance.new("UICorner")
     mfcorner.CornerRadius = UDim.new(0, 10)
     mfcorner.Parent = p95
     local mfstroke = Instance.new("UIStroke")
-    mfstroke.Color = Color3.fromRGB(96, 165, 250)
+    mfstroke.Color = Color3.fromRGB(88, 101, 242)
     mfstroke.Thickness = 1
     mfstroke.Transparency = 0.4
     mfstroke.Parent = p95
+    local bgimg = Instance.new("ImageLabel")
+    bgimg.Name = "bg"
+    bgimg.Parent = p95
+    bgimg.BackgroundTransparency = 1
+    bgimg.Size = UDim2.new(1, 0, 1, 0)
+    bgimg.Position = UDim2.new(0, 0, 0, 0)
+    bgimg.ZIndex = 0
+    bgimg.ImageTransparency = 0.55
+    bgimg.ScaleType = Enum.ScaleType.Crop
+    bgimg.Image = load_image("https://i.ibb.co/YTVsJ1DS/compressed.jpg", "bg.jpg")
+    local bgcorner = Instance.new("UICorner")
+    bgcorner.CornerRadius = UDim.new(0, 10)
+    bgcorner.Parent = bgimg
+    local particles = Instance.new("Frame")
+    particles.Name = "particles"
+    particles.Parent = p95
+    particles.BackgroundTransparency = 1
+    particles.Size = UDim2.new(1, 0, 1, 0)
+    particles.ZIndex = 0
+    spawn(function()
+        while particles.Parent do
+            local dot = Instance.new("Frame")
+            dot.Parent = particles
+            dot.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+            dot.BorderSizePixel = 0
+            dot.ZIndex = 0
+            local sz = math.random(2, 4)
+            dot.Size = UDim2.new(0, sz, 0, sz)
+            dot.Position = UDim2.new(math.random(), 0, 1, 10)
+            dot.BackgroundTransparency = 0.3
+            local dc = Instance.new("UICorner")
+            dc.CornerRadius = UDim.new(1, 0)
+            dc.Parent = dot
+            game:GetService("TweenService"):Create(dot, TweenInfo.new(math.random(35, 70) / 10, Enum.EasingStyle.Linear), {
+                Position = UDim2.new(dot.Position.X.Scale, 0, 0, -10),
+                BackgroundTransparency = 1
+            }):Play()
+            game:GetService("Debris"):AddItem(dot, 7)
+            task.wait(0.45)
+        end
+    end)
     local mfscale = Instance.new("UIScale")
     mfscale.Parent = p95
     local function _resize()
@@ -712,30 +793,177 @@ function make_mainframe(p95, p96, p97, p98, p99)
     end
     p96.Parent = p95
     p96.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
-    p96.BackgroundTransparency = 0
+    p96.BackgroundTransparency = 0.15
     p96.Position = UDim2.new(0, 0, 0, 0)
-    p96.Size = UDim2.new(0, 640, 0, 26)
+    p96.Size = UDim2.new(0, 640, 0, 30)
     p96.Font = Enum.Font.GothamSemibold
     p96.Text = p99
     p96.TextColor3 = Color3.fromRGB(255, 255, 255)
     p96.TextSize = 14
     p96.TextWrapped = true
+    p96.ZIndex = 3
     p96.TextXAlignment = Enum.TextXAlignment.Left
-    p96.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p96.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p96.BorderSizePixel = 0
     local tbcorner = Instance.new("UICorner")
     tbcorner.CornerRadius = UDim.new(0, 10)
     tbcorner.Parent = p96
     local tbpad = Instance.new("UIPadding")
-    tbpad.PaddingLeft = UDim.new(0, 12)
+    tbpad.PaddingLeft = UDim.new(0, 44)
     tbpad.Parent = p96
+    local logo = Instance.new("ImageLabel")
+    logo.Name = "logo"
+    logo.Parent = p96
+    logo.BackgroundTransparency = 1
+    logo.Size = UDim2.new(0, 24, 0, 24)
+    logo.Position = UDim2.new(0, -36, 0.5, -12)
+    logo.ZIndex = 4
+    logo.Image = load_image("https://i.ibb.co/6RtHFCvt/Logobotvip.png", "logo.png")
+    local logocorner = Instance.new("UICorner")
+    logocorner.CornerRadius = UDim.new(1, 0)
+    logocorner.Parent = logo
+    local function startDrag(input)
+        local dragStart = input.Position
+        local startPos = p95.Position
+        local moveConn, endConn
+        moveConn = game:GetService("UserInputService").InputChanged:Connect(function(moveInput)
+            if moveInput.UserInputType == Enum.UserInputType.MouseMovement or moveInput.UserInputType == Enum.UserInputType.Touch then
+                local delta = moveInput.Position - dragStart
+                p95.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            end
+        end)
+        endConn = game:GetService("UserInputService").InputEnded:Connect(function(endInput)
+            if endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch then
+                moveConn:Disconnect()
+                endConn:Disconnect()
+            end
+        end)
+    end
+    p96.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            startDrag(input)
+        end
+    end)
+    local minbtn = Instance.new("TextButton")
+    minbtn.Name = "minimize"
+    minbtn.Parent = p95
+    minbtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    minbtn.Position = UDim2.new(1, -64, 0, 4)
+    minbtn.Size = UDim2.new(0, 24, 0, 22)
+    minbtn.Font = Enum.Font.GothamBold
+    minbtn.Text = "—"
+    minbtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    minbtn.TextSize = 16
+    minbtn.BorderSizePixel = 0
+    minbtn.ZIndex = 5
+    local mincorner = Instance.new("UICorner")
+    mincorner.CornerRadius = UDim.new(0, 6)
+    mincorner.Parent = minbtn
+    local closebtn = Instance.new("TextButton")
+    closebtn.Name = "close"
+    closebtn.Parent = p95
+    closebtn.BackgroundColor3 = Color3.fromRGB(237, 66, 69)
+    closebtn.Position = UDim2.new(1, -34, 0, 4)
+    closebtn.Size = UDim2.new(0, 24, 0, 22)
+    closebtn.Font = Enum.Font.GothamBold
+    closebtn.Text = "X"
+    closebtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closebtn.TextSize = 14
+    closebtn.BorderSizePixel = 0
+    closebtn.ZIndex = 5
+    local closecorner = Instance.new("UICorner")
+    closecorner.CornerRadius = UDim.new(0, 6)
+    closecorner.Parent = closebtn
+    local minimized = false
+    minbtn.MouseButton1Click:Connect(function()
+        minimized = not minimized
+        for _, child in ipairs(p95:GetChildren()) do
+            if child ~= p96 and child ~= minbtn and child ~= closebtn and child ~= mfcorner and child ~= mfstroke and child ~= mfscale and child ~= bgimg and child ~= particles and not child:IsA("UICorner") then
+                child.Visible = not minimized
+            end
+        end
+        bgimg.Visible = not minimized
+        if minimized then
+            p95:TweenSize(UDim2.new(0, 640, 0, 30), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+            minbtn.Text = "+"
+        else
+            p95:TweenSize(UDim2.new(0, 640, 0, 280), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+            minbtn.Text = "—"
+        end
+    end)
+    local confirm = Instance.new("Frame")
+    confirm.Name = "confirm"
+    confirm.Parent = p95
+    confirm.BackgroundColor3 = Color3.fromRGB(26, 30, 42)
+    confirm.Size = UDim2.new(0, 300, 0, 130)
+    confirm.Position = UDim2.new(0.5, -150, 0.5, -65)
+    confirm.BorderSizePixel = 0
+    confirm.Visible = false
+    confirm.ZIndex = 10
+    local cfcorner = Instance.new("UICorner")
+    cfcorner.CornerRadius = UDim.new(0, 10)
+    cfcorner.Parent = confirm
+    local cfstroke = Instance.new("UIStroke")
+    cfstroke.Color = Color3.fromRGB(88, 101, 242)
+    cfstroke.Thickness = 1.5
+    cfstroke.Parent = confirm
+    local cftext = Instance.new("TextLabel")
+    cftext.Parent = confirm
+    cftext.BackgroundTransparency = 1
+    cftext.Size = UDim2.new(1, -20, 0, 60)
+    cftext.Position = UDim2.new(0, 10, 0, 12)
+    cftext.Font = Enum.Font.GothamSemibold
+    cftext.Text = "Do you want to close the script?"
+    cftext.TextColor3 = Color3.fromRGB(255, 255, 255)
+    cftext.TextSize = 16
+    cftext.TextWrapped = true
+    cftext.ZIndex = 11
+    local yesbtn = Instance.new("TextButton")
+    yesbtn.Parent = confirm
+    yesbtn.BackgroundColor3 = Color3.fromRGB(237, 66, 69)
+    yesbtn.Size = UDim2.new(0, 120, 0, 34)
+    yesbtn.Position = UDim2.new(0, 20, 1, -46)
+    yesbtn.Font = Enum.Font.GothamBold
+    yesbtn.Text = "Yes"
+    yesbtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    yesbtn.TextSize = 15
+    yesbtn.BorderSizePixel = 0
+    yesbtn.ZIndex = 11
+    local ycorner = Instance.new("UICorner")
+    ycorner.CornerRadius = UDim.new(0, 8)
+    ycorner.Parent = yesbtn
+    local nobtn = Instance.new("TextButton")
+    nobtn.Parent = confirm
+    nobtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    nobtn.Size = UDim2.new(0, 120, 0, 34)
+    nobtn.Position = UDim2.new(1, -140, 1, -46)
+    nobtn.Font = Enum.Font.GothamBold
+    nobtn.Text = "No"
+    nobtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    nobtn.TextSize = 15
+    nobtn.BorderSizePixel = 0
+    nobtn.ZIndex = 11
+    local ncorner = Instance.new("UICorner")
+    ncorner.CornerRadius = UDim.new(0, 8)
+    ncorner.Parent = nobtn
+    closebtn.MouseButton1Click:Connect(function()
+        confirm.Visible = true
+    end)
+    nobtn.MouseButton1Click:Connect(function()
+        confirm.Visible = false
+    end)
+    yesbtn.MouseButton1Click:Connect(function()
+        p98:Destroy()
+    end)
     p97.Name = "name3"
     p97.Parent = p95
     p97.Active = true
     p97.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
+    p97.BackgroundTransparency = 0.15
     p97.Size = UDim2.new(0, 100, 0, 250)
     p97.ScrollBarThickness = 0
-    p97.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p97.ZIndex = 2
+    p97.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p97.BorderSizePixel = 0
     p97.Position = UDim2.new(0, 0, 0.102285722, 0)
 end
@@ -744,7 +972,7 @@ function make_select1(p100, p101, p102, p103, p104)
     p100.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
     p100.Position = UDim2.new(0, 0, p104, 0)
     p100.Size = UDim2.new(0, 498, 0, 30)
-    p100.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p100.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p100.Font = Enum.Font.Ubuntu
     p100.Text = ""
     p100.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -755,10 +983,10 @@ function make_select1(p100, p101, p102, p103, p104)
     p101.Parent = p100
     p101.BackgroundColor3 = Color3.fromRGB(26, 30, 42)
     p101.Size = UDim2.new(0, 350, 0, 30)
-    p101.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p101.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p101.Font = Enum.Font.SourceSans
     p101.Text = p103
-    p101.TextColor3 = Color3.fromRGB(96, 165, 250)
+    p101.TextColor3 = Color3.fromRGB(88, 101, 242)
     p101.TextSize = 18
     p101.TextXAlignment = Enum.TextXAlignment.Left
 end
@@ -767,7 +995,7 @@ function make_buttonnumber(p105, p106, p107, p108, p109, p110, p111)
     p105.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
     p105.Position = UDim2.new(0, 0, p110, 0)
     p105.Size = UDim2.new(0, 498, 0, 30)
-    p105.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p105.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p105.Font = Enum.Font.Ubuntu
     p105.Text = p108
     p105.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -782,7 +1010,7 @@ function make_buttonnumber(p105, p106, p107, p108, p109, p110, p111)
     p106.Font = Enum.Font.Ubuntu
     p106.BackgroundTransparency = 1
     p106.Text = p109
-    p106.TextColor3 = Color3.fromRGB(96, 165, 250)
+    p106.TextColor3 = Color3.fromRGB(88, 101, 242)
     p106.TextSize = 14
 end
 function make_button(p112, p113, p114, p115, p116)
@@ -790,7 +1018,7 @@ function make_button(p112, p113, p114, p115, p116)
     p112.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
     p112.Position = UDim2.new(0, 0, p116, 0)
     p112.Size = UDim2.new(0, 498, 0, 30)
-    p112.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p112.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p112.Font = Enum.Font.Ubuntu
     p112.Text = p115
     p112.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -799,7 +1027,7 @@ function make_button(p112, p113, p114, p115, p116)
     p112.TextXAlignment = Enum.TextXAlignment.Left
     p113.Name = "name2"
     p113.Parent = p112
-    p113.BackgroundColor3 = Color3.fromRGB(96, 165, 250)
+    p113.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
     p113.Position = UDim2.new(0.85, 0, 0.05, 0)
     p113.Size = UDim2.new(0, 80, 0, 25)
     p113.BorderColor3 = Color3.fromRGB(26, 30, 42)
@@ -813,7 +1041,7 @@ function make_textbox(p117, p118, p119, p120)
     p117.BackgroundColor3 = Color3.fromRGB(250, 255, 255)
     p117.Position = UDim2.new(0, 0, p120, 0)
     p117.Size = UDim2.new(0, 498, 0, 30)
-    p117.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    p117.BorderColor3 = Color3.fromRGB(88, 101, 242)
     p117.Font = Enum.Font.Ubuntu
     p117.Text = p119
     p117.TextColor3 = Color3.fromRGB(37, 43, 59)
@@ -829,7 +1057,7 @@ function make_slider_value(p121, pu122, pu123, pu124, p125, pu126)
     v127.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
     v127.Position = UDim2.new(0, 0, p125, 0)
     v127.Size = UDim2.new(0, 498, 0, 30)
-    v127.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    v127.BorderColor3 = Color3.fromRGB(88, 101, 242)
     v127.Font = Enum.Font.Ubuntu
     v127.Text = ""
     v127.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -900,7 +1128,7 @@ function make_onof(pu144, p145)
     local vu146 = Instance.new("TextButton")
     local v147 = Instance.new("UICorner")
     vu146.Parent = p145
-    vu146.BackgroundColor3 = Color3.fromRGB(96, 165, 250)
+    vu146.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
     vu146.Position = UDim2.new(0.15162201, 0, 0.233285708, 0)
     vu146.Size = UDim2.new(0, 50, 0, 50)
     vu146.Font = Enum.Font.GothamBold
@@ -908,7 +1136,7 @@ function make_onof(pu144, p145)
     vu146.TextColor3 = Color3.fromRGB(255, 255, 255)
     vu146.TextSize = 16
     vu146.BorderSizePixel = 0
-    vu146.BorderColor3 = Color3.fromRGB(96, 165, 250)
+    vu146.BorderColor3 = Color3.fromRGB(88, 101, 242)
     vu146.Transparency = 0
     v147.CornerRadius = UDim.new(0, 12)
     v147.Parent = vu146
@@ -2683,7 +2911,7 @@ function decode(p223)
 end
 make_select1(m_f1, m_b1, vu22, _("main_tool"), 0.03)
 m_b1.MouseButton1Down:connect(function()
-    m_tbar.Visible = true
+    m_tbar.Visible = not m_tbar.Visible
 end)
 _G.table_tool = {
     "Mele",
@@ -2978,7 +3206,7 @@ end)
 make_textlabel(vu26, "Teleport Island", 0.03)
 make_select2(t_f1, t_b1, t_itp, vu26, "Island : Select", 0.1)
 t_b1.MouseButton1Down:connect(function()
-    t_ibar.Visible = true
+    t_ibar.Visible = not t_ibar.Visible
 end)
 t_itp.MouseButton1Down:connect(function()
     if t_itp.Text ~= "" then
@@ -3018,7 +3246,7 @@ end)
 make_textlabel(vu26, "Teleport NPC", 0.17)
 make_select2(t_f2, t_b2, t_npctp, vu26, "NPC : Select", 0.24)
 t_b2.MouseButton1Down:connect(function()
-    t_npcbar.Visible = true
+    t_npcbar.Visible = not t_npcbar.Visible
 end)
 t_npctp.MouseButton1Down:connect(function()
     if t_npctp.Text ~= "" then
@@ -3062,7 +3290,7 @@ t_b4.MouseButton1Down:connect(function()
 end)
 make_select1(cb_f1, cb_b1, vu27, _("player"), 0.03)
 cb_b1.MouseButton1Down:connect(function()
-    cb_pbar.Visible = true
+    cb_pbar.Visible = not cb_pbar.Visible
 end)
 function listprl()
     if vu27:FindFirstChild("cb_pbar") then
@@ -3675,7 +3903,7 @@ modskill()
 make_textlabel(vu28, "Farm Material", 0.03)
 make_select2(ib_f1, ib_b1, ib_mb, vu28, _("material"), 0.1)
 ib_b1.MouseButton1Down:connect(function()
-    ib_mbar.Visible = true
+    ib_mbar.Visible = not ib_mbar.Visible
 end)
 ib_mb.MouseButton1Down:connect(function()
     if ib_mb.Text ~= "" then
@@ -4023,7 +4251,7 @@ sever_b1.MouseButton1Down:connect(function()
 end)
 make_select1(d_f1, d_b1, vu30, _("dungeon_select"), 0.03)
 d_b1.MouseButton1Down:connect(function()
-    d_dbar.Visible = true
+    d_dbar.Visible = not d_dbar.Visible
 end)
 _G.table_dungeon = {
     "Easy",
@@ -4463,7 +4691,7 @@ end)
 make_textlabel(vu33, "Buy Key", 0.03)
 make_select2(shop_f1, shop_b1, shop_bkey, vu33, _("key1"), 0.1)
 shop_b1.MouseButton1Down:connect(function()
-    shop_keybar.Visible = true
+    shop_keybar.Visible = not shop_keybar.Visible
 end)
 shop_bkey.MouseButton1Down:connect(function()
     if shop_bkey.Text ~= "" then
@@ -4500,7 +4728,7 @@ make_auto_selectbutton(shop_b1, shop_keybar, _G.table_key, "Key", 0.05, "key1")
 make_textlabel(vu33, "Random Fruit", 0.24)
 make_select1(shop_f2, shop_b2, vu33, _("key2"), 0.31)
 shop_b2.MouseButton1Down:connect(function()
-    shop_randombar.Visible = true
+    shop_randombar.Visible = not shop_randombar.Visible
 end)
 make_selectscrollingframe(shop_randombar, vu33, 0.38, 0)
 make_auto_selectbutton(shop_b2, shop_randombar, _G.table_key, "Key", 0.05, "key2")
