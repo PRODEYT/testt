@@ -361,6 +361,17 @@ m_f5 = Instance.new("TextLabel")
 m_b5 = Instance.new("TextButton")
 m_f6 = Instance.new("TextLabel")
 m_b6 = Instance.new("TextButton")
+m_gibar = Instance.new("ScrollingFrame")
+m_gif = Instance.new("TextLabel")
+m_gib = Instance.new("TextButton")
+m_giqty = Instance.new("TextBox")
+m_gigo_f = Instance.new("TextLabel")
+m_gigo_b = Instance.new("TextButton")
+m_lkbar = Instance.new("ScrollingFrame")
+m_lkf = Instance.new("TextLabel")
+m_lkb = Instance.new("TextButton")
+m_lkgo_f = Instance.new("TextLabel")
+m_lkgo_b = Instance.new("TextButton")
 s_f1 = Instance.new("TextLabel")
 s_b1 = Instance.new("TextButton")
 s_f2 = Instance.new("TextLabel")
@@ -3051,6 +3062,191 @@ game:GetService("RunService").Stepped:Connect(function()
     end
 end)
 make_slider_value(vu22, "Distance", 200, 1000, 0.24, "distancemob")
+_G.table_getitem = {
+    "Sea King fin",
+    "Shark\'s Fin",
+    "Sea Artifact",
+    "Leather",
+    "Shark\'s Canine",
+    "Coral",
+    "Pearl",
+    "Iron",
+    "Rusted Scrap",
+    "Carrot",
+    "Dragon\'s Orb",
+    "Magma Cystal",
+    "Ice Cystal",
+    "Lost Ruby",
+    "Essence of Fire"
+}
+make_select2(m_gif, m_gib, m_gigo_b, vu22, _("getitem_mat"), 0.31)
+m_gib.MouseButton1Down:connect(function()
+    m_gibar.Visible = not m_gibar.Visible
+end)
+m_gigo_b.MouseButton1Down:connect(function()
+    if m_gigo_b.Text ~= "" then
+        m_gigo_b.Text = ""
+        _G.getitem = false
+    else
+        m_gigo_b.Text = "X"
+        _G.getitem = true
+    end
+    __("getitem", _G.getitem)
+    if _G.getitem then
+        spawn(function()
+            get_item_run()
+        end)
+    end
+end)
+make_selectscrollingframe(m_gibar, vu22, 0.38)
+make_auto_selectbutton(m_gib, m_gibar, _G.table_getitem, "Item", 0.05, "getitem_mat")
+local m_qtybox = Instance.new("TextBox")
+m_qtybox.Parent = vu22
+m_qtybox.BackgroundColor3 = Color3.fromRGB(250, 255, 255)
+m_qtybox.Position = UDim2.new(0, 0, 0.45, 0)
+m_qtybox.Size = UDim2.new(0, 498, 0, 30)
+m_qtybox.BorderColor3 = Color3.fromRGB(88, 101, 242)
+m_qtybox.Font = Enum.Font.Ubuntu
+m_qtybox.Text = "Quantity : " .. tostring(_("getitem_qty"))
+m_qtybox.PlaceholderText = "Enter Quantity"
+m_qtybox.TextColor3 = Color3.fromRGB(37, 43, 59)
+m_qtybox.TextSize = 14
+m_qtybox.TextWrapped = true
+m_qtybox.TextXAlignment = Enum.TextXAlignment.Left
+m_qtybox.FocusLost:Connect(function()
+    local n = tonumber(m_qtybox.Text:match("%d+"))
+    if n and n > 0 then
+        __("getitem_qty", n)
+    end
+    m_qtybox.Text = "Quantity : " .. tostring(_("getitem_qty"))
+end)
+m_gigo_f.Parent = vu22
+m_gigo_f.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
+m_gigo_f.Position = UDim2.new(0, 0, 0.52, 0)
+m_gigo_f.Size = UDim2.new(0, 498, 0, 20)
+m_gigo_f.BorderColor3 = Color3.fromRGB(88, 101, 242)
+m_gigo_f.Font = Enum.Font.Ubuntu
+m_gigo_f.Text = "   Get Item Status : Idle"
+m_gigo_f.TextColor3 = Color3.fromRGB(255, 255, 255)
+m_gigo_f.TextSize = 14
+m_gigo_f.TextXAlignment = Enum.TextXAlignment.Left
+function get_item_count(name)
+    local count = 0
+    pcall(function()
+        local stats = game.Players.LocalPlayer:FindFirstChild("PlayerStats")
+        if stats then
+            local mats = stats:FindFirstChild("Materials")
+            if mats and mats:FindFirstChild(name) then
+                count = mats[name].Value
+            end
+        end
+    end)
+    return count
+end
+function get_item_run()
+    local target_name = _("getitem_mat"):gsub("Item : ", "")
+    local want = _("getitem_qty")
+    if target_name == "Select" or target_name == "" then
+        m_gigo_f.Text = "   Get Item Status : Choose Item"
+        _G.getitem = false
+        m_gigo_b.Text = ""
+        return
+    end
+    while _G.getitem do
+        local have = get_item_count(target_name)
+        m_gigo_f.Text = "   Getting " .. target_name .. " : " .. have .. " / " .. want
+        if have >= want then
+            m_gigo_f.Text = "   Done : " .. target_name .. " x" .. have
+            _G.getitem = false
+            m_gigo_b.Text = ""
+            break
+        end
+        pcall(function()
+            material()
+            for i = 1, # mob do
+                local edit = "Lv. " .. mob[i] .. "]"
+                for _, folder in pairs(game.Workspace.Monster:GetChildren()) do
+                    if folder.ClassName == "Folder" then
+                        for _, m in pairs(folder:GetChildren()) do
+                            if string.find(m.Name, edit) and m:FindFirstChild("Humanoid") and m.Humanoid.Health > 0 then
+                                _G.aimbot = true
+                                _G.usetool = true
+                                tp(m.HumanoidRootPart.CFrame * CFrame.new(0, _("distance"), 0) * CFrame.Angles(math.rad(- 90), 0, 0))
+                                if distance(m.HumanoidRootPart.Position) < 60 then
+                                    _G.pos_skill = m.HumanoidRootPart.CFrame
+                                    click()
+                                    autoskill()
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+        task.wait(0.2)
+    end
+end
+make_textlabel(vu22, "Luck Boost (Fast Drop)", 0.59)
+_G.table_luck = {
+    "Sea King fin",
+    "Shark\'s Fin",
+    "Dragon\'s Orb",
+    "Lucidus\'s Totem",
+    "Dark Beard\'s Totem",
+    "Twilight\'s Orb",
+    "Essence of Fire",
+    "Lost Ruby",
+    "Sea Artifact",
+    "Pearl"
+}
+make_select2(m_lkf, m_lkb, m_lkgo_b, vu22, _("luck_target"), 0.66)
+m_lkb.MouseButton1Down:connect(function()
+    m_lkbar.Visible = not m_lkbar.Visible
+end)
+m_lkgo_b.MouseButton1Down:connect(function()
+    if m_lkgo_b.Text ~= "" then
+        m_lkgo_b.Text = ""
+        _G.luckboost = false
+    else
+        m_lkgo_b.Text = "X"
+        _G.luckboost = true
+    end
+    __("luckboost", _G.luckboost)
+end)
+make_selectscrollingframe(m_lkbar, vu22, 0.73)
+make_auto_selectbutton(m_lkb, m_lkbar, _G.table_luck, "Target", 0.05, "luck_target")
+spawn(function()
+    while task.wait(0.1) do
+        pcall(function()
+            if _("luckboost") then
+                _G.dropchance = 100
+                _G.luckmultiplier = 1000
+                local rep = game:GetService("ReplicatedStorage")
+                if rep:FindFirstChild("Chest") and rep.Chest:FindFirstChild("Remotes") then
+                    local funcs = rep.Chest.Remotes:FindFirstChild("Functions")
+                    if funcs then
+                        if funcs:FindFirstChild("DropBoost") then
+                            pcall(function()
+                                funcs.DropBoost:InvokeServer(_("luck_target"):gsub("Target : ", ""))
+                            end)
+                        end
+                        if funcs:FindFirstChild("LootRoll") then
+                            pcall(function()
+                                funcs.LootRoll:InvokeServer(_("luck_target"):gsub("Target : ", ""))
+                            end)
+                        end
+                    end
+                    local events = rep.Chest.Remotes:FindFirstChild("Events")
+                    if events and events:FindFirstChild("ForceDrop") then
+                        pcall(function()
+                            events.ForceDrop:FireServer(_("luck_target"):gsub("Target : ", ""))
+                        end)
+                    end
+                end
+            end
+        end)
+    end
+end)
 make_together(s_f1, s_b1, vu23, "   Mele", 0.03)
 s_b1.MouseButton1Down:connect(function()
     if s_b1.Text ~= "" then
