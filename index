@@ -4865,8 +4865,8 @@ sea_selb.MouseButton1Down:connect(function()
     sea_dbar.Visible = not sea_dbar.Visible
 end)
 make_selectscrollingframe(sea_dbar, vu_sea, 0.38)
-make_button(sea_ref_f, sea_ref_b, vu_sea, "   Refresh Servers", 0.78)
-make_button(sea_join_f, sea_join_b, vu_sea, "   Join Selected Server", 0.85)
+make_button(sea_ref_f, sea_ref_b, vu_sea, "   Refresh Servers", 0.45)
+make_button(sea_join_f, sea_join_b, vu_sea, "   Join Selected Server", 0.52)
 _G.TPS = game:GetService("TeleportService")
 function sea_queue_teleport()
     local code = "loadstring(game:HttpGet('" .. (_G.PRODE_ScriptUrl or "") .. "'))()"
@@ -5028,36 +5028,23 @@ function sea_hop()
     _G.sea_hopping = false
 end
 function sea_make_row(srv, index)
-    local row = Instance.new("TextLabel")
+    local row = Instance.new("TextButton")
     row.Parent = sea_dbar
     row.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
-    row.Position = UDim2.new(0, 0, 0, (index - 1) * 32)
-    row.Size = UDim2.new(0, 340, 0, 28)
+    row.Position = UDim2.new(0, 5, 0, (index - 1) * 32)
+    row.Size = UDim2.new(0, 335, 0, 28)
     row.BorderSizePixel = 0
     row.Font = Enum.Font.Gotham
     row.Text = "  " .. srv.boss .. "  |  " .. srv.playing .. "/" .. srv.maxPlayers .. " Players"
     row.TextColor3 = Color3.fromRGB(255, 255, 255)
     row.TextSize = 13
     row.ZIndex = 9
+    row.AutoButtonColor = true
     row.TextXAlignment = Enum.TextXAlignment.Left
     local rc = Instance.new("UICorner")
     rc.CornerRadius = UDim.new(0, 6)
     rc.Parent = row
-    local pick = Instance.new("TextButton")
-    pick.Parent = row
-    pick.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
-    pick.Position = UDim2.new(0.8, 0, 0, 0)
-    pick.Size = UDim2.new(0, 65, 0, 28)
-    pick.BorderSizePixel = 0
-    pick.Font = Enum.Font.GothamBold
-    pick.Text = "Join"
-    pick.TextColor3 = Color3.fromRGB(255, 255, 255)
-    pick.TextSize = 13
-    pick.ZIndex = 10
-    local pc = Instance.new("UICorner")
-    pc.CornerRadius = UDim.new(0, 6)
-    pc.Parent = pick
-    pick.MouseButton1Down:connect(function()
+    row.MouseButton1Click:connect(function()
         _G.sea_selected = srv.id
         sea_selb.Text = "   " .. srv.boss .. " | " .. srv.playing .. "/" .. srv.maxPlayers
         sea_dbar.Visible = false
@@ -5067,18 +5054,15 @@ function sea_make_row(srv, index)
 end
 function sea_pick6()
     local all = _G.sea_all or {}
-    table.sort(all, function(a, b)
-        return a.playing > b.playing
-    end)
-    local six = {}
     for i = #all, 2, -1 do
         local j = math.random(1, i)
         all[i], all[j] = all[j], all[i]
     end
+    local six = {}
     for _, srv in ipairs(all) do
         if srv.id ~= game.JobId then
             table.insert(six, srv)
-            if #six >= 6 then
+            if #six >= 10 then
                 break
             end
         end
@@ -5088,7 +5072,7 @@ function sea_pick6()
 end
 function sea_show_page()
     for _, c in pairs(sea_dbar:GetChildren()) do
-        if c:IsA("TextLabel") then
+        if c:IsA("TextButton") then
             c:Destroy()
         end
     end
