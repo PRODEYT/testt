@@ -4823,6 +4823,11 @@ sea_b1.MouseButton1Down:connect(function()
         _G.sea_b1 = true
     end
     __("smarthop", _G.sea_b1)
+    if _G.sea_b1 then
+        spawn(function()
+            sea_smart_run()
+        end)
+    end
 end)
 make_together(sea_f2, sea_b2, vu_sea, "   Auto Hop (Farm Boss)", 0.17)
 sea_b2.MouseButton1Down:connect(function()
@@ -4834,6 +4839,11 @@ sea_b2.MouseButton1Down:connect(function()
         _G.sea_b2 = true
     end
     __("autohop", _G.sea_b2)
+    if _G.sea_b2 then
+        spawn(function()
+            sea_smart_run()
+        end)
+    end
 end)
 make_textlabel(vu_sea, "", 0.24)
 sea_status.Parent = vu_sea
@@ -4855,15 +4865,52 @@ function sea_queue_teleport()
         end
     end)
 end
+function sea_http_get(url)
+    local result = nil
+    pcall(function()
+        local req = (syn and syn.request) or (http and http.request) or http_request or request or (fluxus and fluxus.request)
+        if req then
+            local res = req({ Url = url, Method = "GET" })
+            if res and res.Body then
+                result = res.Body
+            end
+        end
+    end)
+    if not result then
+        pcall(function()
+            result = game:HttpGetAsync(url)
+        end)
+    end
+    if not result then
+        pcall(function()
+            result = game:HttpGet(url)
+        end)
+    end
+    return result
+end
 function sea_get_servers()
     local list = {}
     pcall(function()
         local cursor = ""
-        local data = game:HttpGetAsync("https://games.roblox.com/v1/games/" .. _G.SeaPlaceId .. "/servers/Public?sortOrder=Asc&limit=100" .. cursor)
-        local body = hs:JSONDecode(data)
-        for _, srv in pairs(body.data) do
-            if type(srv) == "table" and srv.playing and srv.maxPlayers and srv.playing < srv.maxPlayers and srv.id ~= game.JobId then
-                table.insert(list, srv)
+        for i = 1, 5 do
+            local url = "https://games.roblox.com/v1/games/" .. _G.SeaPlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+            if cursor ~= "" then
+                url = url .. "&cursor=" .. cursor
+            end
+            local data = sea_http_get(url)
+            if not data then
+                break
+            end
+            local body = hs:JSONDecode(data)
+            for _, srv in pairs(body.data) do
+                if type(srv) == "table" and srv.playing and srv.maxPlayers and srv.playing < srv.maxPlayers and srv.id ~= game.JobId then
+                    table.insert(list, srv)
+                end
+            end
+            if body.nextPageCursor and body.nextPageCursor ~= "" then
+                cursor = body.nextPageCursor
+            else
+                break
             end
         end
     end)
@@ -4910,6 +4957,22 @@ function sea_hop()
     end)
     task.wait(8)
     _G.sea_hopping = false
+end
+function sea_smart_run()
+    if game.PlaceId ~= _G.SeaPlaceId then
+        sea_status.Text = "   Going To Boss Sea..."
+        sea_queue_teleport()
+        pcall(function()
+            game:GetService("TeleportService"):Teleport(_G.SeaPlaceId, game.Players.LocalPlayer)
+        end)
+        return
+    end
+    if not sea_boss_present() then
+        sea_status.Text = "   No Boss Here - Searching..."
+        sea_hop()
+    else
+        sea_status.Text = "   Boss Found In This Server"
+    end
 end
 spawn(function()
     while task.wait(5) do
