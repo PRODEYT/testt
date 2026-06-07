@@ -4985,10 +4985,21 @@ pcall(function()
 end)
 function sea_do_teleport(jobId)
     sea_queue_teleport()
-    local ok = pcall(function()
-        _G.TPS:TeleportToPlaceInstance(_G.SeaPlaceId, jobId, game.Players.LocalPlayer)
+    spawn(function()
+        for attempt = 1, 5 do
+            local ok, err = pcall(function()
+                _G.TPS:TeleportToPlaceInstance(_G.SeaPlaceId, jobId, game.Players.LocalPlayer)
+            end)
+            if ok then
+                return
+            end
+            task.wait(2)
+        end
+        pcall(function()
+            _G.TPS:Teleport(_G.SeaPlaceId, game.Players.LocalPlayer)
+        end)
     end)
-    return ok
+    return true
 end
 function sea_hop()
     if _G.sea_hopping then
@@ -5391,12 +5402,12 @@ spawn(function()
     end
 end)
 _G.webhook = {
-    sk = "https://discord.com/api/webhooks/1513219411320897536/XOpCaSSKuhPf70K4H8P-29LVlovRXO8-TQOCinhzQ_eiP4kQQoiX-mj1M2Kr2b04c_80",
-    hd = "https://discord.com/api/webhooks/1513219411320897536/XOpCaSSKuhPf70K4H8P-29LVlovRXO8-TQOCinhzQ_eiP4kQQoiX-mj1M2Kr2b04c_80",
-    gs = "https://discord.com/api/webhooks/1513219411320897536/XOpCaSSKuhPf70K4H8P-29LVlovRXO8-TQOCinhzQ_eiP4kQQoiX-mj1M2Kr2b04c_80",
-    ks = "https://discord.com/api/webhooks/1513219411320897536/XOpCaSSKuhPf70K4H8P-29LVlovRXO8-TQOCinhzQ_eiP4kQQoiX-mj1M2Kr2b04c_80",
-    race = "https://discord.com/api/webhooks/1513219411320897536/XOpCaSSKuhPf70K4H8P-29LVlovRXO8-TQOCinhzQ_eiP4kQQoiX-mj1M2Kr2b04c_80",
-    ss = "https://discord.com/api/webhooks/1513219411320897536/XOpCaSSKuhPf70K4H8P-29LVlovRXO8-TQOCinhzQ_eiP4kQQoiX-mj1M2Kr2b04c_80"
+    sk = "https://discord.com/api/webhooks/1276927002359758930/VOB9dUxSgoZSYpuZAeBAGNxHLqXrkvGuOlhpLVS1wBky1UXDA4FtI5TQcQ1V5c5V_a-z",
+    hd = "https://discord.com/api/webhooks/1276926958600458280/2_xCpNb1_VUjrI3dplTO6nuNMWnbUfGAOSZlXqNYetZCOVPLdQ1v5GTaMpYEakmjjOtX",
+    gs = "https://discord.com/api/webhooks/1434514100553125939/9CXSqNJzudDV40p-ETbLQDwVRAgKw48g-gjtIfn1kJS2Niyzoj57zGzlZ13-WSK-Gygy",
+    ks = "https://discord.com/api/webhooks/1434514144425410631/iJVpEw7gtVvrhmzUj6oQ80nJYeJ00jagytbyJE7t-7yXZ654S6uc-i6l5N-_7HwD9NuG",
+    race = "https://discord.com/api/webhooks/1434514210670383198/TJhxkz4zmuB3wRuLmC3r1Fron7a-RGaJ9o4OBaEXFkjI6PU9VkF3wesWey85oUPwJDzq",
+    ss = "https://discord.com/api/webhooks/1434514181784076380/PHs_Hw8sjtqLpAlIaU-GL70DAJZrcx4uAfctubssy53wi3mUFByrL03KxiKT0uIbmgp5"
 }
 function done(p436)
     if not p436:FindFirstChild("done") then
@@ -5805,7 +5816,7 @@ end
 vu495(game:GetService("ReplicatedStorage").Chest.Remotes.Functions.GetDFShop:InvokeServer())
 local v496 = req
 local v497 = {
-    Url = "https://discord.com/api/webhooks/1513219411320897536/XOpCaSSKuhPf70K4H8P-29LVlovRXO8-TQOCinhzQ_eiP4kQQoiX-mj1M2Kr2b04c_80",
+    Url = "https://discord.com/api/webhooks/1443254589859041372/71fLy3Fqn8iLGR5lbJ8h9mF9m4510RdU9WVvZspEqzyweKQf8BhKkRVeF3fstT6UlQY3",
     Method = "POST",
     Headers = {
         ["Content-Type"] = "application/json"
