@@ -759,34 +759,6 @@ function make_mainframe(p95, p96, p97, p98, p99)
     local bgcorner = Instance.new("UICorner")
     bgcorner.CornerRadius = UDim.new(0, 10)
     bgcorner.Parent = bgimg
-    local particles = Instance.new("Frame")
-    particles.Name = "particles"
-    particles.Parent = p95
-    particles.BackgroundTransparency = 1
-    particles.Size = UDim2.new(1, 0, 1, 0)
-    particles.ZIndex = 0
-    spawn(function()
-        while particles.Parent do
-            local dot = Instance.new("Frame")
-            dot.Parent = particles
-            dot.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
-            dot.BorderSizePixel = 0
-            dot.ZIndex = 0
-            local sz = math.random(2, 4)
-            dot.Size = UDim2.new(0, sz, 0, sz)
-            dot.Position = UDim2.new(math.random(), 0, 1, 10)
-            dot.BackgroundTransparency = 0.3
-            local dc = Instance.new("UICorner")
-            dc.CornerRadius = UDim.new(1, 0)
-            dc.Parent = dot
-            game:GetService("TweenService"):Create(dot, TweenInfo.new(math.random(35, 70) / 10, Enum.EasingStyle.Linear), {
-                Position = UDim2.new(dot.Position.X.Scale, 0, 0, -10),
-                BackgroundTransparency = 1
-            }):Play()
-            game:GetService("Debris"):AddItem(dot, 7)
-            task.wait(0.45)
-        end
-    end)
     local mfscale = Instance.new("UIScale")
     mfscale.Parent = p95
     local function _resize()
@@ -902,7 +874,7 @@ function make_mainframe(p95, p96, p97, p98, p99)
     minbtn.MouseButton1Click:Connect(function()
         minimized = not minimized
         for _, child in ipairs(p95:GetChildren()) do
-            if child ~= p96 and child ~= minbtn and child ~= closebtn and child ~= mfcorner and child ~= mfstroke and child ~= mfscale and child ~= bgimg and child ~= particles and not child:IsA("UICorner") then
+            if child ~= p96 and child ~= minbtn and child ~= closebtn and child ~= mfcorner and child ~= mfstroke and child ~= mfscale and child ~= bgimg and not child:IsA("UICorner") then
                 child.Visible = not minimized
             end
         end
@@ -1160,12 +1132,41 @@ function make_onof(pu144, p145)
     vu146.BorderSizePixel = 0
     vu146.BorderColor3 = Color3.fromRGB(88, 101, 242)
     vu146.AutoButtonColor = false
+    vu146.Active = true
+    vu146.Draggable = false
     v147.CornerRadius = UDim.new(0, 12)
     v147.Parent = vu146
     local vu146open = false
-    vu146.MouseButton1Down:connect(function()
-        vu146open = not vu146open
-        pu144.Visible = vu146open
+    local uis = game:GetService("UserInputService")
+    local dragging = false
+    local moved = false
+    local dragStart = nil
+    local startPos = nil
+    vu146.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            moved = false
+            dragStart = input.Position
+            startPos = vu146.Position
+        end
+    end)
+    uis.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            if math.abs(delta.X) > 3 or math.abs(delta.Y) > 3 then
+                moved = true
+            end
+            vu146.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    uis.InputEnded:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+            dragging = false
+            if not moved then
+                vu146open = not vu146open
+                pu144.Visible = vu146open
+            end
+        end
     end)
 end
 make_screengui(v18)
@@ -1205,7 +1206,7 @@ make_mainbutton(v45, vu35, "   Fish", UDim2.new(0, 0, 0.15, 0))
 make_mainbutton(v38, vu35, "   Player/Mod", UDim2.new(0, 0, 0.15, 0))
 make_mainbutton(v47, vu35, "   Shop", UDim2.new(0, 0, 0, 0))
 make_mainbutton(v_seabtn, vu35, "   Sea", UDim2.new(0, 0, 0.05, 0))
-v_seabtn.Visible = false
+v_seabtn.Visible = true
 make_mainbutton(v43, vu35, "   Sever", UDim2.new(0, 0, 0.1, 0))
 make_mainbutton(v40, vu35, "   Teleport", UDim2.new(0, 0, 0.15, 0))
 make_mainbutton(v39, vu35, "   Setting", UDim2.new(0, 0, 0.1, 0))
@@ -5175,7 +5176,7 @@ spawn(function()
     end)
     while task.wait(1) do
         pcall(function()
-            v_seabtn.Visible = game.PlaceId == _G.SeaPlaceId
+            v_seabtn.Visible = true
         end)
     end
 end)
@@ -5616,3 +5617,23 @@ local v497 = {
     })
 }
 v496(v497)
+pcall(function()
+    if setfpscap then
+        setfpscap(0)
+    elseif set_fps_cap then
+        set_fps_cap(0)
+    elseif setfflag then
+        setfflag("DFIntTaskSchedulerTargetFps", "1000")
+    end
+end)
+spawn(function()
+    while task.wait(10) do
+        pcall(function()
+            if setfpscap then
+                setfpscap(0)
+            elseif set_fps_cap then
+                set_fps_cap(0)
+            end
+        end)
+    end
+end)
