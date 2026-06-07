@@ -4850,19 +4850,22 @@ sea_status.Position = UDim2.new(0, 0, 0.24, 0)
 sea_status.Size = UDim2.new(0, 498, 0, 30)
 sea_status.BorderColor3 = Color3.fromRGB(88, 101, 242)
 sea_status.Font = Enum.Font.Ubuntu
-sea_status.Text = "   Available Servers : 0"
+sea_status.Text = "   Available Servers : ..."
 sea_status.TextColor3 = Color3.fromRGB(255, 255, 255)
 sea_status.TextSize = 14
 sea_status.TextWrapped = true
 sea_status.TextXAlignment = Enum.TextXAlignment.Left
 _G.sea_selected = nil
 _G.sea_server_list = {}
+_G.sea_all = {}
+_G.sea_count = 0
+_G.sea_busy = false
 make_select1(sea_sel, sea_selb, vu_sea, "   Select Server", 0.31)
 sea_selb.MouseButton1Down:connect(function()
     sea_dbar.Visible = not sea_dbar.Visible
 end)
 make_selectscrollingframe(sea_dbar, vu_sea, 0.38)
-make_button(sea_ref_f, sea_ref_b, vu_sea, "   Show 6 More Servers", 0.78)
+make_button(sea_ref_f, sea_ref_b, vu_sea, "   Refresh Servers", 0.78)
 make_button(sea_join_f, sea_join_b, vu_sea, "   Join Selected Server", 0.85)
 _G.TPS = game:GetService("TeleportService")
 function sea_queue_teleport()
@@ -4904,6 +4907,10 @@ function sea_boss_type(jobId)
     end
 end
 function sea_get_servers()
+    if _G.sea_busy then
+        return _G.sea_all or {}
+    end
+    _G.sea_busy = true
     local list = {}
     local hsv = game:GetService("HttpService")
     local cursor = ""
@@ -4935,10 +4942,15 @@ function sea_get_servers()
         end
         page = page + 1
         if cursor ~= "" then
-            task.wait(0.2)
+            task.wait(0.3)
         end
     until cursor == "" or page >= 4
-    return list
+    if #list > 0 then
+        _G.sea_all = list
+        _G.sea_count = #list
+    end
+    _G.sea_busy = false
+    return _G.sea_all or {}
 end
 function sea_boss_present()
     local found = false
@@ -4991,10 +5003,15 @@ function sea_hop()
         return
     end
     sea_status.Text = "   Hopping... (" .. #servers .. " Available)"
-    for i = #servers, 2, -1 do
-        local j = math.random(1, i)
-        servers[i], servers[j] = servers[j], servers[i]
+    local pool = {}
+    for _, s in ipairs(servers) do
+        pool[#pool + 1] = s
     end
+    for i = #pool, 2, -1 do
+        local j = math.random(1, i)
+        pool[i], pool[j] = pool[j], pool[i]
+    end
+    servers = pool
     for _, srv in ipairs(servers) do
         if not _G.sea_tried[srv.id] then
             _G.sea_tried[srv.id] = true
@@ -5033,7 +5050,7 @@ function sea_make_row(srv, index)
     pick.Size = UDim2.new(0, 65, 0, 28)
     pick.BorderSizePixel = 0
     pick.Font = Enum.Font.GothamBold
-    pick.Text = "Select"
+    pick.Text = "Join"
     pick.TextColor3 = Color3.fromRGB(255, 255, 255)
     pick.TextSize = 13
     pick.ZIndex = 10
@@ -5044,51 +5061,59 @@ function sea_make_row(srv, index)
         _G.sea_selected = srv.id
         sea_selb.Text = "   " .. srv.boss .. " | " .. srv.playing .. "/" .. srv.maxPlayers
         sea_dbar.Visible = false
+        sea_status.Text = "   Joining " .. srv.boss .. " server..."
+        sea_do_teleport(srv.id)
     end)
 end
-_G.sea_page = 0
+function sea_pick6()
+    local all = _G.sea_all or {}
+    table.sort(all, function(a, b)
+        return a.playing > b.playing
+    end)
+    local six = {}
+    for i = #all, 2, -1 do
+        local j = math.random(1, i)
+        all[i], all[j] = all[j], all[i]
+    end
+    for _, srv in ipairs(all) do
+        if srv.id ~= game.JobId then
+            table.insert(six, srv)
+            if #six >= 6 then
+                break
+            end
+        end
+    end
+    _G.sea_server_list = six
+    return six
+end
 function sea_show_page()
     for _, c in pairs(sea_dbar:GetChildren()) do
         if c:IsA("TextLabel") then
             c:Destroy()
         end
     end
-    local total = #_G.sea_server_list
-    if total == 0 then
+    local six = _G.sea_server_list or {}
+    if #six == 0 then
         sea_dbar.CanvasSize = UDim2.new(0, 0, 0, 0)
         sea_selb.Text = "   No Servers Found"
         return
     end
-    local pages = math.ceil(total / 6)
-    if _G.sea_page >= pages then
-        _G.sea_page = 0
+    for i = 1, #six do
+        sea_make_row(six[i], i)
     end
-    local startI = _G.sea_page * 6 + 1
-    local endI = math.min(startI + 5, total)
-    local row = 0
-    for i = startI, endI do
-        row = row + 1
-        sea_make_row(_G.sea_server_list[i], row)
-    end
-    sea_dbar.CanvasSize = UDim2.new(0, 0, 0, row * 32)
-    sea_selb.Text = "   Page " .. (_G.sea_page + 1) .. "/" .. pages .. " - Pick One"
+    sea_dbar.CanvasSize = UDim2.new(0, 0, 0, #six * 32)
+    sea_selb.Text = "   Pick A Server (" .. #six .. ")"
 end
 function sea_refresh_list()
     sea_selb.Text = "   Loading servers..."
-    _G.sea_server_list = sea_get_servers()
-    table.sort(_G.sea_server_list, function(a, b)
-        return a.playing > b.playing
-    end)
-    _G.sea_page = 0
+    sea_get_servers()
+    sea_pick6()
     sea_show_page()
+    sea_status.Text = "   Available Servers : " .. _G.sea_count
 end
 sea_ref_b.MouseButton1Down:connect(function()
-    if #_G.sea_server_list == 0 then
-        sea_refresh_list()
-    else
-        _G.sea_page = _G.sea_page + 1
-        sea_show_page()
-    end
+    sea_refresh_list()
+    sea_dbar.Visible = true
 end)
 sea_join_b.MouseButton1Down:connect(function()
     if _G.sea_selected then
@@ -5099,11 +5124,15 @@ sea_join_b.MouseButton1Down:connect(function()
     end
 end)
 spawn(function()
-    while task.wait(5) do
+    task.wait(2)
+    pcall(sea_refresh_list)
+end)
+spawn(function()
+    while task.wait(8) do
         pcall(function()
-            if _("smarthop") or _("autohop") then
-                local servers = sea_get_servers()
-                sea_status.Text = "   Available Servers : " .. # servers
+            sea_get_servers()
+            if not (_("smarthop") or _("autohop")) then
+                sea_status.Text = "   Available Servers : " .. _G.sea_count
             end
         end)
     end
