@@ -4862,7 +4862,7 @@ sea_selb.MouseButton1Down:connect(function()
     sea_dbar.Visible = not sea_dbar.Visible
 end)
 make_selectscrollingframe(sea_dbar, vu_sea, 0.38)
-make_button(sea_ref_f, sea_ref_b, vu_sea, "   Refresh Server List", 0.78)
+make_button(sea_ref_f, sea_ref_b, vu_sea, "   Show 6 More Servers", 0.78)
 make_button(sea_join_f, sea_join_b, vu_sea, "   Join Selected Server", 0.85)
 _G.TPS = game:GetService("TeleportService")
 function sea_queue_teleport()
@@ -4999,7 +4999,7 @@ function sea_hop()
         if not _G.sea_tried[srv.id] then
             _G.sea_tried[srv.id] = true
             if sea_do_teleport(srv.id) then
-                task.wait(6)
+                task.wait(10)
                 _G.sea_hopping = false
                 return
             end
@@ -5007,7 +5007,7 @@ function sea_hop()
     end
     _G.sea_tried = {}
     sea_do_teleport(servers[1].id)
-    task.wait(6)
+    task.wait(10)
     _G.sea_hopping = false
 end
 function sea_make_row(srv, index)
@@ -5046,29 +5046,49 @@ function sea_make_row(srv, index)
         sea_dbar.Visible = false
     end)
 end
-function sea_refresh_list()
+_G.sea_page = 0
+function sea_show_page()
     for _, c in pairs(sea_dbar:GetChildren()) do
         if c:IsA("TextLabel") then
             c:Destroy()
         end
     end
+    local total = #_G.sea_server_list
+    if total == 0 then
+        sea_dbar.CanvasSize = UDim2.new(0, 0, 0, 0)
+        sea_selb.Text = "   No Servers Found"
+        return
+    end
+    local pages = math.ceil(total / 6)
+    if _G.sea_page >= pages then
+        _G.sea_page = 0
+    end
+    local startI = _G.sea_page * 6 + 1
+    local endI = math.min(startI + 5, total)
+    local row = 0
+    for i = startI, endI do
+        row = row + 1
+        sea_make_row(_G.sea_server_list[i], row)
+    end
+    sea_dbar.CanvasSize = UDim2.new(0, 0, 0, row * 32)
+    sea_selb.Text = "   Page " .. (_G.sea_page + 1) .. "/" .. pages .. " - Pick One"
+end
+function sea_refresh_list()
     sea_selb.Text = "   Loading servers..."
     _G.sea_server_list = sea_get_servers()
     table.sort(_G.sea_server_list, function(a, b)
         return a.playing > b.playing
     end)
-    sea_dbar.CanvasSize = UDim2.new(0, 0, 0, #_G.sea_server_list * 32)
-    for i, srv in ipairs(_G.sea_server_list) do
-        sea_make_row(srv, i)
-    end
-    if #_G.sea_server_list == 0 then
-        sea_selb.Text = "   No Servers Found"
-    else
-        sea_selb.Text = "   " .. #_G.sea_server_list .. " Servers - Pick One"
-    end
+    _G.sea_page = 0
+    sea_show_page()
 end
 sea_ref_b.MouseButton1Down:connect(function()
-    sea_refresh_list()
+    if #_G.sea_server_list == 0 then
+        sea_refresh_list()
+    else
+        _G.sea_page = _G.sea_page + 1
+        sea_show_page()
+    end
 end)
 sea_join_b.MouseButton1Down:connect(function()
     if _G.sea_selected then
