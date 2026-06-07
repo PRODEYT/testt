@@ -765,9 +765,9 @@ function make_mainframe(p95, p96, p97, p98, p99)
         local cam = workspace.CurrentCamera
         if cam then
             local vx = cam.ViewportSize.X
-            local s = vx / 820
-            if s > 1 then s = 1 end
-            if s < 0.55 then s = 0.55 end
+            local s = vx / 980
+            if s > 0.82 then s = 0.82 end
+            if s < 0.5 then s = 0.5 end
             mfscale.Scale = s
         end
     end
@@ -4847,26 +4847,65 @@ sea_status.TextColor3 = Color3.fromRGB(255, 255, 255)
 sea_status.TextSize = 14
 sea_status.TextWrapped = true
 sea_status.TextXAlignment = Enum.TextXAlignment.Left
+_G.TPS = game:GetService("TeleportService")
 function sea_queue_teleport()
     local code = "loadstring(game:HttpGet('" .. (_G.PRODE_ScriptUrl or "") .. "'))()"
     pcall(function()
-        if _G.PRODE_ScriptUrl and (queue_on_teleport or (syn and syn.queue_on_teleport) or queueteleport) then
-            (queue_on_teleport or (syn and syn.queue_on_teleport) or queueteleport)(code)
+        local q = queue_on_teleport or (syn and syn.queue_on_teleport) or queueteleport or (fluxus and fluxus.queue_on_teleport)
+        if _G.PRODE_ScriptUrl and _G.PRODE_ScriptUrl ~= "" and q then
+            q(code)
         end
     end)
 end
+-- executor http request fallback (works on more executors than HttpGetAsync)
+function sea_http_get(url)
+    local req = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
+    if req then
+        local ok, res = pcall(function()
+            return req({ Url = url, Method = "GET" })
+        end)
+        if ok and res and res.Body then
+            return res.Body
+        end
+    end
+    local ok2, body = pcall(function()
+        return game:HttpGetAsync(url)
+    end)
+    if ok2 then
+        return body
+    end
+    return nil
+end
 function sea_get_servers()
     local list = {}
-    pcall(function()
-        local cursor = ""
-        local data = game:HttpGetAsync("https://games.roblox.com/v1/games/" .. _G.SeaPlaceId .. "/servers/Public?sortOrder=Asc&limit=100" .. cursor)
-        local body = hs:JSONDecode(data)
-        for _, srv in pairs(body.data) do
-            if type(srv) == "table" and srv.playing and srv.maxPlayers and srv.playing < srv.maxPlayers and srv.id ~= game.JobId then
-                table.insert(list, srv)
-            end
+    local hsv = game:GetService("HttpService")
+    local cursor = ""
+    local page = 0
+    repeat
+        local url = "https://games.roblox.com/v1/games/" .. _G.SeaPlaceId .. "/servers/Public?sortOrder=Desc&limit=100"
+        if cursor ~= "" then
+            url = url .. "&cursor=" .. cursor
         end
-    end)
+        local raw = sea_http_get(url)
+        cursor = ""
+        if raw then
+            pcall(function()
+                local body = hsv:JSONDecode(raw)
+                if body and body.data then
+                    for _, srv in ipairs(body.data) do
+                        if type(srv) == "table" and srv.playing and srv.maxPlayers and srv.playing < srv.maxPlayers and srv.id ~= game.JobId then
+                            table.insert(list, srv.id)
+                        end
+                    end
+                    cursor = body.nextPageCursor or ""
+                end
+            end)
+        end
+        page = page + 1
+        if cursor ~= "" then
+            task.wait(0.2)
+        end
+    until cursor == "" or page >= 4
     return list
 end
 function sea_boss_present()
@@ -4891,24 +4930,56 @@ function sea_boss_present()
     return found
 end
 _G.sea_hopping = false
+_G.sea_tried = {}
+-- listen for failed teleports so we can immediately try another server
+pcall(function()
+    _G.TPS.TeleportInitFailed:Connect(function(player, result, msg)
+        if player == game.Players.LocalPlayer then
+            _G.sea_hopping = false
+            sea_status.Text = "   Teleport failed - retrying..."
+        end
+    end)
+end)
+function sea_do_teleport(jobId)
+    sea_queue_teleport()
+    local ok = pcall(function()
+        _G.TPS:TeleportToPlaceInstance(_G.SeaPlaceId, jobId, game.Players.LocalPlayer)
+    end)
+    return ok
+end
 function sea_hop()
     if _G.sea_hopping then
         return
     end
     _G.sea_hopping = true
+    sea_status.Text = "   Searching for servers..."
     local servers = sea_get_servers()
-    if # servers == 0 then
-        sea_status.Text = "   No Available Servers"
+    if #servers == 0 then
+        sea_status.Text = "   No Available Servers - retrying..."
         _G.sea_hopping = false
         return
     end
-    local target = servers[math.random(1, # servers)]
-    sea_status.Text = "   Hopping... (" .. # servers .. " Available)"
-    sea_queue_teleport()
-    pcall(function()
-        game:GetService("TeleportService"):TeleportToPlaceInstance(_G.SeaPlaceId, target.id, game.Players.LocalPlayer)
-    end)
-    task.wait(8)
+    sea_status.Text = "   Hopping... (" .. #servers .. " Available)"
+    -- shuffle the list so we don't keep hammering the same server
+    for i = #servers, 2, -1 do
+        local j = math.random(1, i)
+        servers[i], servers[j] = servers[j], servers[i]
+    end
+    -- pick a server we haven't just tried, then teleport
+    for _, jobId in ipairs(servers) do
+        if not _G.sea_tried[jobId] then
+            _G.sea_tried[jobId] = true
+            if sea_do_teleport(jobId) then
+                task.wait(6)
+                _G.sea_hopping = false
+                return
+            end
+        end
+    end
+    -- all servers were already tried; reset memory and just take the first one
+    _G.sea_tried = {}
+    sea_do_teleport(servers[1])
+    task.wait(6)
     _G.sea_hopping = false
 end
 spawn(function()
@@ -4926,18 +4997,28 @@ spawn(function()
         pcall(function()
             if game.PlaceId == _G.SeaPlaceId then
                 if (_("smarthop") or _("autohop")) and not sea_boss_present() then
-                    sea_status.Text = "   No Boss Here - Searching..."
-                    sea_hop()
+                    if not _G.sea_hopping then
+                        sea_status.Text = "   No Boss Here - Searching..."
+                        sea_hop()
+                    end
                 elseif sea_boss_present() then
-                    sea_status.Text = "   Boss Found In This Server"
+                    if _("smarthop") or _("autohop") then
+                        sea_status.Text = "   Boss Found In This Server"
+                    end
                 end
             else
                 if _("smarthop") or _("autohop") then
-                    sea_status.Text = "   Going To Boss Sea..."
-                    sea_queue_teleport()
-                    pcall(function()
-                        game:GetService("TeleportService"):Teleport(_G.SeaPlaceId, game.Players.LocalPlayer)
-                    end)
+                    if not _G.sea_hopping then
+                        _G.sea_hopping = true
+                        sea_status.Text = "   Going To Boss Sea..."
+                        sea_queue_teleport()
+                        local ok = pcall(function()
+                            _G.TPS:Teleport(_G.SeaPlaceId, game.Players.LocalPlayer)
+                        end)
+                        if not ok then
+                            _G.sea_hopping = false
+                        end
+                    end
                 end
             end
         end)
