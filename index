@@ -193,6 +193,14 @@ _G.Setting = {
         false,
         "shop_bkey"
     },
+    smarthop = {
+        false,
+        "sea_b1"
+    },
+    autohop = {
+        false,
+        "sea_b2"
+    },
     _end = {
         "_end"
     }
@@ -301,6 +309,7 @@ local vu30 = Instance.new("ScrollingFrame")
 local vu31 = Instance.new("ScrollingFrame")
 local vu32 = Instance.new("ScrollingFrame")
 local vu33 = Instance.new("ScrollingFrame")
+local vu_sea = Instance.new("ScrollingFrame")
 Instance.new("ScrollingFrame")
 Instance.new("ScrollingFrame")
 Instance.new("ScrollingFrame")
@@ -319,6 +328,7 @@ local v44 = Instance.new("TextButton")
 local v45 = Instance.new("TextButton")
 local v46 = Instance.new("TextButton")
 local v47 = Instance.new("TextButton")
+local v_seabtn = Instance.new("TextButton")
 Instance.new("TextButton")
 Instance.new("TextButton")
 m_tbar = Instance.new("ScrollingFrame")
@@ -473,6 +483,11 @@ shop_b4 = Instance.new("TextButton")
 shop_f4 = Instance.new("TextLabel")
 shop_b5 = Instance.new("TextButton")
 shop_f5 = Instance.new("TextLabel")
+sea_f1 = Instance.new("TextLabel")
+sea_b1 = Instance.new("TextButton")
+sea_f2 = Instance.new("TextLabel")
+sea_b2 = Instance.new("TextButton")
+sea_status = Instance.new("TextLabel")
 function _(p48)
     return _G.Setting[p48][1]
 end
@@ -1179,6 +1194,7 @@ make_mainscrollingframe(vu30, vu19, false)
 make_mainscrollingframe(vu31, vu19, false)
 make_mainscrollingframe(vu32, vu19, false)
 make_mainscrollingframe(vu33, vu19, false)
+make_mainscrollingframe(vu_sea, vu19, false)
 make_mainbutton(v36, vu35, "   Main", UDim2.new(0, 0, 0, 0))
 make_mainbutton(v37, vu35, "   Stat", UDim2.new(0, 0, 0.05, 0))
 make_mainbutton(v42, vu35, "   Item/Boss", UDim2.new(0, 0, 0.15, 0))
@@ -1188,6 +1204,8 @@ make_mainbutton(v44, vu35, "   Dungeon", UDim2.new(0, 0, 0.1, 0))
 make_mainbutton(v45, vu35, "   Fish", UDim2.new(0, 0, 0.15, 0))
 make_mainbutton(v38, vu35, "   Player/Mod", UDim2.new(0, 0, 0.15, 0))
 make_mainbutton(v47, vu35, "   Shop", UDim2.new(0, 0, 0, 0))
+make_mainbutton(v_seabtn, vu35, "   Sea", UDim2.new(0, 0, 0.05, 0))
+v_seabtn.Visible = false
 make_mainbutton(v43, vu35, "   Sever", UDim2.new(0, 0, 0.1, 0))
 make_mainbutton(v40, vu35, "   Teleport", UDim2.new(0, 0, 0.15, 0))
 make_mainbutton(v39, vu35, "   Setting", UDim2.new(0, 0, 0.1, 0))
@@ -4791,6 +4809,169 @@ spawn(function()
         end)
     end
 end)
+_G.SeaPlaceId = 15759515082
+_G.SpawnCFrame = nil
+make_textlabel(vu_sea, "Smart Hop Sea King and Hydra", 0.03)
+make_together(sea_f1, sea_b1, vu_sea, "   Smart Hop Sea King - Hydra", 0.1)
+sea_b1.MouseButton1Down:connect(function()
+    if sea_b1.Text ~= "" then
+        sea_b1.Text = ""
+        _G.sea_b1 = false
+    else
+        sea_b1.Text = "X"
+        _G.sea_b1 = true
+    end
+    __("smarthop", _G.sea_b1)
+end)
+make_together(sea_f2, sea_b2, vu_sea, "   Auto Hop (Farm Boss)", 0.17)
+sea_b2.MouseButton1Down:connect(function()
+    if sea_b2.Text ~= "" then
+        sea_b2.Text = ""
+        _G.sea_b2 = false
+    else
+        sea_b2.Text = "X"
+        _G.sea_b2 = true
+    end
+    __("autohop", _G.sea_b2)
+end)
+make_textlabel(vu_sea, "", 0.24)
+sea_status.Parent = vu_sea
+sea_status.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
+sea_status.Position = UDim2.new(0, 0, 0.24, 0)
+sea_status.Size = UDim2.new(0, 498, 0, 30)
+sea_status.BorderColor3 = Color3.fromRGB(88, 101, 242)
+sea_status.Font = Enum.Font.Ubuntu
+sea_status.Text = "   Available Servers : 0"
+sea_status.TextColor3 = Color3.fromRGB(255, 255, 255)
+sea_status.TextSize = 14
+sea_status.TextWrapped = true
+sea_status.TextXAlignment = Enum.TextXAlignment.Left
+function sea_queue_teleport()
+    local code = "loadstring(game:HttpGet('" .. (_G.PRODE_ScriptUrl or "") .. "'))()"
+    pcall(function()
+        if _G.PRODE_ScriptUrl and (queue_on_teleport or (syn and syn.queue_on_teleport) or queueteleport) then
+            (queue_on_teleport or (syn and syn.queue_on_teleport) or queueteleport)(code)
+        end
+    end)
+end
+function sea_get_servers()
+    local list = {}
+    pcall(function()
+        local cursor = ""
+        local data = game:HttpGetAsync("https://games.roblox.com/v1/games/" .. _G.SeaPlaceId .. "/servers/Public?sortOrder=Asc&limit=100" .. cursor)
+        local body = hs:JSONDecode(data)
+        for _, srv in pairs(body.data) do
+            if type(srv) == "table" and srv.playing and srv.maxPlayers and srv.playing < srv.maxPlayers and srv.id ~= game.JobId then
+                table.insert(list, srv)
+            end
+        end
+    end)
+    return list
+end
+function sea_boss_present()
+    local found = false
+    pcall(function()
+        if game.Workspace:FindFirstChild("SeaMonster") then
+            if game.Workspace.SeaMonster:FindFirstChild("SeaKing") or game.Workspace.SeaMonster:FindFirstChild("HydraSeaKing") then
+                found = true
+            end
+        end
+        if not found and game.Workspace:FindFirstChild("Island") then
+            for _, v in pairs(game.Workspace.Island:GetChildren()) do
+                if string.find(v.Name, "Sea King") or string.find(v.Name, "Legacy Island") then
+                    if v:FindFirstChild("HydraStand") or v:FindFirstChild("ChestSpawner") then
+                        found = true
+                        break
+                    end
+                end
+            end
+        end
+    end)
+    return found
+end
+_G.sea_hopping = false
+function sea_hop()
+    if _G.sea_hopping then
+        return
+    end
+    _G.sea_hopping = true
+    local servers = sea_get_servers()
+    if # servers == 0 then
+        sea_status.Text = "   No Available Servers"
+        _G.sea_hopping = false
+        return
+    end
+    local target = servers[math.random(1, # servers)]
+    sea_status.Text = "   Hopping... (" .. # servers .. " Available)"
+    sea_queue_teleport()
+    pcall(function()
+        game:GetService("TeleportService"):TeleportToPlaceInstance(_G.SeaPlaceId, target.id, game.Players.LocalPlayer)
+    end)
+    task.wait(8)
+    _G.sea_hopping = false
+end
+spawn(function()
+    while task.wait(5) do
+        pcall(function()
+            if _("smarthop") or _("autohop") then
+                local servers = sea_get_servers()
+                sea_status.Text = "   Available Servers : " .. # servers
+            end
+        end)
+    end
+end)
+spawn(function()
+    while task.wait(3) do
+        pcall(function()
+            if game.PlaceId == _G.SeaPlaceId then
+                if (_("smarthop") or _("autohop")) and not sea_boss_present() then
+                    sea_status.Text = "   No Boss Here - Searching..."
+                    sea_hop()
+                elseif sea_boss_present() then
+                    sea_status.Text = "   Boss Found In This Server"
+                end
+            else
+                if _("smarthop") or _("autohop") then
+                    sea_status.Text = "   Going To Boss Sea..."
+                    sea_queue_teleport()
+                    pcall(function()
+                        game:GetService("TeleportService"):Teleport(_G.SeaPlaceId, game.Players.LocalPlayer)
+                    end)
+                end
+            end
+        end)
+    end
+end)
+spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            if game.PlaceId == _G.SeaPlaceId and _("autohop") then
+                if sea_boss_present() then
+                    _G.aimbot = true
+                    _G.usetool = true
+                    click()
+                    if _("ken") then
+                        ken()
+                    end
+                    local target = nil
+                    if game.Workspace.SeaMonster:FindFirstChild("HydraSeaKing") and game.Workspace.SeaMonster.HydraSeaKing.Humanoid.Health > 0 then
+                        target = game.Workspace.SeaMonster.HydraSeaKing.HumanoidRootPart.CFrame
+                    elseif game.Workspace.SeaMonster:FindFirstChild("SeaKing") and game.Workspace.SeaMonster.SeaKing.Humanoid.Health > 0 then
+                        target = game.Workspace.SeaMonster.SeaKing.HumanoidRootPart.CFrame
+                    end
+                    if target then
+                        _G.pos_skill = target
+                        tp(target)
+                        if target.Position.Y <= - 4 then
+                            tp(target * CFrame.new(0, 50, 0))
+                        end
+                        autoskill()
+                    end
+                end
+            end
+        end)
+    end
+end)
 spawn(function()
     while task.wait() do
         pcall(function()
@@ -4943,6 +5124,7 @@ function b_page(p434, p435)
     vu31.Visible = false
     vu32.Visible = false
     vu33.Visible = false
+    vu_sea.Visible = false
     p434.Visible = true
     vu20.Text = p435
 end
@@ -4981,6 +5163,21 @@ v46.MouseButton1Down:connect(function()
 end)
 v47.MouseButton1Down:connect(function()
     b_page(vu33, "PRODE HUB | Shop")
+end)
+v_seabtn.MouseButton1Down:connect(function()
+    b_page(vu_sea, "PRODE HUB | Sea")
+end)
+spawn(function()
+    pcall(function()
+        if game.PlaceId == _G.SeaPlaceId and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            _G.SpawnCFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+        end
+    end)
+    while task.wait(1) do
+        pcall(function()
+            v_seabtn.Visible = game.PlaceId == _G.SeaPlaceId
+        end)
+    end
 end)
 _G.webhook = {
     sk = "https://discord.com/api/webhooks/1276927002359758930/VOB9dUxSgoZSYpuZAeBAGNxHLqXrkvGuOlhpLVS1wBky1UXDA4FtI5TQcQ1V5c5V_a-z",
