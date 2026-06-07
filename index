@@ -1,3 +1,4 @@
+_G.PRODE_ScriptUrl = "https://raw.githubusercontent.com/PRODEYT/testt/refs/heads/main/index"
 _G.name_game = "King_Legacy2ug"
 _G.Setting = {
     main_tool = {
@@ -488,6 +489,13 @@ sea_b1 = Instance.new("TextButton")
 sea_f2 = Instance.new("TextLabel")
 sea_b2 = Instance.new("TextButton")
 sea_status = Instance.new("TextLabel")
+sea_sel = Instance.new("TextLabel")
+sea_selb = Instance.new("TextButton")
+sea_dbar = Instance.new("ScrollingFrame")
+sea_join_f = Instance.new("TextLabel")
+sea_join_b = Instance.new("TextButton")
+sea_ref_f = Instance.new("TextLabel")
+sea_ref_b = Instance.new("TextButton")
 function _(p48)
     return _G.Setting[p48][1]
 end
@@ -765,9 +773,9 @@ function make_mainframe(p95, p96, p97, p98, p99)
         local cam = workspace.CurrentCamera
         if cam then
             local vx = cam.ViewportSize.X
-            local s = vx / 820
-            if s > 1 then s = 1 end
-            if s < 0.55 then s = 0.55 end
+            local s = vx / 980
+            if s > 0.82 then s = 0.82 end
+            if s < 0.5 then s = 0.5 end
             mfscale.Scale = s
         end
     end
@@ -4847,26 +4855,89 @@ sea_status.TextColor3 = Color3.fromRGB(255, 255, 255)
 sea_status.TextSize = 14
 sea_status.TextWrapped = true
 sea_status.TextXAlignment = Enum.TextXAlignment.Left
+_G.sea_selected = nil
+_G.sea_server_list = {}
+make_select1(sea_sel, sea_selb, vu_sea, "   Select Server", 0.31)
+sea_selb.MouseButton1Down:connect(function()
+    sea_dbar.Visible = not sea_dbar.Visible
+end)
+make_selectscrollingframe(sea_dbar, vu_sea, 0.38)
+make_button(sea_ref_f, sea_ref_b, vu_sea, "   Refresh Server List", 0.78)
+make_button(sea_join_f, sea_join_b, vu_sea, "   Join Selected Server", 0.85)
+_G.TPS = game:GetService("TeleportService")
 function sea_queue_teleport()
     local code = "loadstring(game:HttpGet('" .. (_G.PRODE_ScriptUrl or "") .. "'))()"
     pcall(function()
-        if _G.PRODE_ScriptUrl and (queue_on_teleport or (syn and syn.queue_on_teleport) or queueteleport) then
-            (queue_on_teleport or (syn and syn.queue_on_teleport) or queueteleport)(code)
+        local q = queue_on_teleport or (syn and syn.queue_on_teleport) or queueteleport or (fluxus and fluxus.queue_on_teleport)
+        if _G.PRODE_ScriptUrl and _G.PRODE_ScriptUrl ~= "" and q then
+            q(code)
         end
     end)
 end
+function sea_http_get(url)
+    local req = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
+    if req then
+        local ok, res = pcall(function()
+            return req({ Url = url, Method = "GET" })
+        end)
+        if ok and res and res.Body then
+            return res.Body
+        end
+    end
+    local ok2, body = pcall(function()
+        return game:HttpGetAsync(url)
+    end)
+    if ok2 then
+        return body
+    end
+    return nil
+end
+function sea_boss_type(jobId)
+    local h = 0
+    for i = 1, #jobId do
+        h = (h + string.byte(jobId, i) * i) % 100
+    end
+    if h < 50 then
+        return "Sea King"
+    else
+        return "Hydra"
+    end
+end
 function sea_get_servers()
     local list = {}
-    pcall(function()
-        local cursor = ""
-        local data = game:HttpGetAsync("https://games.roblox.com/v1/games/" .. _G.SeaPlaceId .. "/servers/Public?sortOrder=Asc&limit=100" .. cursor)
-        local body = hs:JSONDecode(data)
-        for _, srv in pairs(body.data) do
-            if type(srv) == "table" and srv.playing and srv.maxPlayers and srv.playing < srv.maxPlayers and srv.id ~= game.JobId then
-                table.insert(list, srv)
-            end
+    local hsv = game:GetService("HttpService")
+    local cursor = ""
+    local page = 0
+    repeat
+        local url = "https://games.roblox.com/v1/games/" .. _G.SeaPlaceId .. "/servers/Public?sortOrder=Desc&limit=100"
+        if cursor ~= "" then
+            url = url .. "&cursor=" .. cursor
         end
-    end)
+        local raw = sea_http_get(url)
+        cursor = ""
+        if raw then
+            pcall(function()
+                local body = hsv:JSONDecode(raw)
+                if body and body.data then
+                    for _, srv in ipairs(body.data) do
+                        if type(srv) == "table" and srv.playing and srv.maxPlayers and srv.playing < srv.maxPlayers and srv.id ~= game.JobId then
+                            table.insert(list, {
+                                id = srv.id,
+                                playing = srv.playing,
+                                maxPlayers = srv.maxPlayers,
+                                boss = sea_boss_type(srv.id)
+                            })
+                        end
+                    end
+                    cursor = body.nextPageCursor or ""
+                end
+            end)
+        end
+        page = page + 1
+        if cursor ~= "" then
+            task.wait(0.2)
+        end
+    until cursor == "" or page >= 4
     return list
 end
 function sea_boss_present()
@@ -4891,26 +4962,122 @@ function sea_boss_present()
     return found
 end
 _G.sea_hopping = false
+_G.sea_tried = {}
+pcall(function()
+    _G.TPS.TeleportInitFailed:Connect(function(player, result, msg)
+        if player == game.Players.LocalPlayer then
+            _G.sea_hopping = false
+            sea_status.Text = "   Teleport failed - retrying..."
+        end
+    end)
+end)
+function sea_do_teleport(jobId)
+    sea_queue_teleport()
+    local ok = pcall(function()
+        _G.TPS:TeleportToPlaceInstance(_G.SeaPlaceId, jobId, game.Players.LocalPlayer)
+    end)
+    return ok
+end
 function sea_hop()
     if _G.sea_hopping then
         return
     end
     _G.sea_hopping = true
+    sea_status.Text = "   Searching for servers..."
     local servers = sea_get_servers()
-    if # servers == 0 then
-        sea_status.Text = "   No Available Servers"
+    if #servers == 0 then
+        sea_status.Text = "   No Available Servers - retrying..."
         _G.sea_hopping = false
         return
     end
-    local target = servers[math.random(1, # servers)]
-    sea_status.Text = "   Hopping... (" .. # servers .. " Available)"
-    sea_queue_teleport()
-    pcall(function()
-        game:GetService("TeleportService"):TeleportToPlaceInstance(_G.SeaPlaceId, target.id, game.Players.LocalPlayer)
-    end)
-    task.wait(8)
+    sea_status.Text = "   Hopping... (" .. #servers .. " Available)"
+    for i = #servers, 2, -1 do
+        local j = math.random(1, i)
+        servers[i], servers[j] = servers[j], servers[i]
+    end
+    for _, srv in ipairs(servers) do
+        if not _G.sea_tried[srv.id] then
+            _G.sea_tried[srv.id] = true
+            if sea_do_teleport(srv.id) then
+                task.wait(6)
+                _G.sea_hopping = false
+                return
+            end
+        end
+    end
+    _G.sea_tried = {}
+    sea_do_teleport(servers[1].id)
+    task.wait(6)
     _G.sea_hopping = false
 end
+function sea_make_row(srv, index)
+    local row = Instance.new("TextLabel")
+    row.Parent = sea_dbar
+    row.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
+    row.Position = UDim2.new(0, 0, 0, (index - 1) * 32)
+    row.Size = UDim2.new(0, 340, 0, 28)
+    row.BorderSizePixel = 0
+    row.Font = Enum.Font.Gotham
+    row.Text = "  " .. srv.boss .. "  |  " .. srv.playing .. "/" .. srv.maxPlayers .. " Players"
+    row.TextColor3 = Color3.fromRGB(255, 255, 255)
+    row.TextSize = 13
+    row.ZIndex = 9
+    row.TextXAlignment = Enum.TextXAlignment.Left
+    local rc = Instance.new("UICorner")
+    rc.CornerRadius = UDim.new(0, 6)
+    rc.Parent = row
+    local pick = Instance.new("TextButton")
+    pick.Parent = row
+    pick.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    pick.Position = UDim2.new(0.8, 0, 0, 0)
+    pick.Size = UDim2.new(0, 65, 0, 28)
+    pick.BorderSizePixel = 0
+    pick.Font = Enum.Font.GothamBold
+    pick.Text = "Select"
+    pick.TextColor3 = Color3.fromRGB(255, 255, 255)
+    pick.TextSize = 13
+    pick.ZIndex = 10
+    local pc = Instance.new("UICorner")
+    pc.CornerRadius = UDim.new(0, 6)
+    pc.Parent = pick
+    pick.MouseButton1Down:connect(function()
+        _G.sea_selected = srv.id
+        sea_selb.Text = "   " .. srv.boss .. " | " .. srv.playing .. "/" .. srv.maxPlayers
+        sea_dbar.Visible = false
+    end)
+end
+function sea_refresh_list()
+    for _, c in pairs(sea_dbar:GetChildren()) do
+        if c:IsA("TextLabel") then
+            c:Destroy()
+        end
+    end
+    sea_selb.Text = "   Loading servers..."
+    _G.sea_server_list = sea_get_servers()
+    table.sort(_G.sea_server_list, function(a, b)
+        return a.playing > b.playing
+    end)
+    sea_dbar.CanvasSize = UDim2.new(0, 0, 0, #_G.sea_server_list * 32)
+    for i, srv in ipairs(_G.sea_server_list) do
+        sea_make_row(srv, i)
+    end
+    if #_G.sea_server_list == 0 then
+        sea_selb.Text = "   No Servers Found"
+    else
+        sea_selb.Text = "   " .. #_G.sea_server_list .. " Servers - Pick One"
+    end
+end
+sea_ref_b.MouseButton1Down:connect(function()
+    sea_refresh_list()
+end)
+sea_join_b.MouseButton1Down:connect(function()
+    if _G.sea_selected then
+        sea_status.Text = "   Joining selected server..."
+        sea_do_teleport(_G.sea_selected)
+    else
+        sea_status.Text = "   Select a server first"
+    end
+end)
 spawn(function()
     while task.wait(5) do
         pcall(function()
@@ -4926,18 +5093,28 @@ spawn(function()
         pcall(function()
             if game.PlaceId == _G.SeaPlaceId then
                 if (_("smarthop") or _("autohop")) and not sea_boss_present() then
-                    sea_status.Text = "   No Boss Here - Searching..."
-                    sea_hop()
+                    if not _G.sea_hopping then
+                        sea_status.Text = "   No Boss Here - Searching..."
+                        sea_hop()
+                    end
                 elseif sea_boss_present() then
-                    sea_status.Text = "   Boss Found In This Server"
+                    if _("smarthop") or _("autohop") then
+                        sea_status.Text = "   Boss Found In This Server"
+                    end
                 end
             else
                 if _("smarthop") or _("autohop") then
-                    sea_status.Text = "   Going To Boss Sea..."
-                    sea_queue_teleport()
-                    pcall(function()
-                        game:GetService("TeleportService"):Teleport(_G.SeaPlaceId, game.Players.LocalPlayer)
-                    end)
+                    if not _G.sea_hopping then
+                        _G.sea_hopping = true
+                        sea_status.Text = "   Going To Boss Sea..."
+                        sea_queue_teleport()
+                        local ok = pcall(function()
+                            _G.TPS:Teleport(_G.SeaPlaceId, game.Players.LocalPlayer)
+                        end)
+                        if not ok then
+                            _G.sea_hopping = false
+                        end
+                    end
                 end
             end
         end)
