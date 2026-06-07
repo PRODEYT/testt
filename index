@@ -201,6 +201,23 @@ _G.Setting = {
         false,
         "sea_b2"
     },
+    getitem_mat = {
+        "Item : Select"
+    },
+    getitem_qty = {
+        10
+    },
+    getitem = {
+        false,
+        "m_gi"
+    },
+    luck_target = {
+        "Target : Select"
+    },
+    luckboost = {
+        false,
+        "m_lk"
+    },
     _end = {
         "_end"
     }
@@ -4890,10 +4907,11 @@ function sea_http_get(url)
 end
 function sea_get_servers()
     local list = {}
+    local http = game:GetService("HttpService")
     pcall(function()
         local cursor = ""
-        for i = 1, 5 do
-            local url = "https://games.roblox.com/v1/games/" .. _G.SeaPlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+        for i = 1, 8 do
+            local url = "https://games.roblox.com/v1/games/" .. _G.SeaPlaceId .. "/servers/Public?sortOrder=Asc&excludeFullGames=true&limit=100"
             if cursor ~= "" then
                 url = url .. "&cursor=" .. cursor
             end
@@ -4901,7 +4919,12 @@ function sea_get_servers()
             if not data then
                 break
             end
-            local body = hs:JSONDecode(data)
+            local ok, body = pcall(function()
+                return http:JSONDecode(data)
+            end)
+            if not ok or type(body) ~= "table" or type(body.data) ~= "table" then
+                break
+            end
             for _, srv in pairs(body.data) do
                 if type(srv) == "table" and srv.playing and srv.maxPlayers and srv.playing < srv.maxPlayers and srv.id ~= game.JobId then
                     table.insert(list, srv)
