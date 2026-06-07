@@ -201,23 +201,6 @@ _G.Setting = {
         false,
         "sea_b2"
     },
-    getitem_mat = {
-        "Item : Select"
-    },
-    getitem_qty = {
-        10
-    },
-    getitem = {
-        false,
-        "m_gi"
-    },
-    luck_target = {
-        "Target : Select"
-    },
-    luckboost = {
-        false,
-        "m_lk"
-    },
     _end = {
         "_end"
     }
@@ -361,17 +344,6 @@ m_f5 = Instance.new("TextLabel")
 m_b5 = Instance.new("TextButton")
 m_f6 = Instance.new("TextLabel")
 m_b6 = Instance.new("TextButton")
-m_gibar = Instance.new("ScrollingFrame")
-m_gif = Instance.new("TextLabel")
-m_gib = Instance.new("TextButton")
-m_giqty = Instance.new("TextBox")
-m_gigo_f = Instance.new("TextLabel")
-m_gigo_b = Instance.new("TextButton")
-m_lkbar = Instance.new("ScrollingFrame")
-m_lkf = Instance.new("TextLabel")
-m_lkb = Instance.new("TextButton")
-m_lkgo_f = Instance.new("TextLabel")
-m_lkgo_b = Instance.new("TextButton")
 s_f1 = Instance.new("TextLabel")
 s_b1 = Instance.new("TextButton")
 s_f2 = Instance.new("TextLabel")
@@ -787,6 +759,34 @@ function make_mainframe(p95, p96, p97, p98, p99)
     local bgcorner = Instance.new("UICorner")
     bgcorner.CornerRadius = UDim.new(0, 10)
     bgcorner.Parent = bgimg
+    local particles = Instance.new("Frame")
+    particles.Name = "particles"
+    particles.Parent = p95
+    particles.BackgroundTransparency = 1
+    particles.Size = UDim2.new(1, 0, 1, 0)
+    particles.ZIndex = 0
+    spawn(function()
+        while particles.Parent do
+            local dot = Instance.new("Frame")
+            dot.Parent = particles
+            dot.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+            dot.BorderSizePixel = 0
+            dot.ZIndex = 0
+            local sz = math.random(2, 4)
+            dot.Size = UDim2.new(0, sz, 0, sz)
+            dot.Position = UDim2.new(math.random(), 0, 1, 10)
+            dot.BackgroundTransparency = 0.3
+            local dc = Instance.new("UICorner")
+            dc.CornerRadius = UDim.new(1, 0)
+            dc.Parent = dot
+            game:GetService("TweenService"):Create(dot, TweenInfo.new(math.random(35, 70) / 10, Enum.EasingStyle.Linear), {
+                Position = UDim2.new(dot.Position.X.Scale, 0, 0, -10),
+                BackgroundTransparency = 1
+            }):Play()
+            game:GetService("Debris"):AddItem(dot, 7)
+            task.wait(0.45)
+        end
+    end)
     local mfscale = Instance.new("UIScale")
     mfscale.Parent = p95
     local function _resize()
@@ -902,7 +902,7 @@ function make_mainframe(p95, p96, p97, p98, p99)
     minbtn.MouseButton1Click:Connect(function()
         minimized = not minimized
         for _, child in ipairs(p95:GetChildren()) do
-            if child ~= p96 and child ~= minbtn and child ~= closebtn and child ~= mfcorner and child ~= mfstroke and child ~= mfscale and child ~= bgimg and not child:IsA("UICorner") then
+            if child ~= p96 and child ~= minbtn and child ~= closebtn and child ~= mfcorner and child ~= mfstroke and child ~= mfscale and child ~= bgimg and child ~= particles and not child:IsA("UICorner") then
                 child.Visible = not minimized
             end
         end
@@ -1160,41 +1160,12 @@ function make_onof(pu144, p145)
     vu146.BorderSizePixel = 0
     vu146.BorderColor3 = Color3.fromRGB(88, 101, 242)
     vu146.AutoButtonColor = false
-    vu146.Active = true
-    vu146.Draggable = false
     v147.CornerRadius = UDim.new(0, 12)
     v147.Parent = vu146
     local vu146open = false
-    local uis = game:GetService("UserInputService")
-    local dragging = false
-    local moved = false
-    local dragStart = nil
-    local startPos = nil
-    vu146.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            moved = false
-            dragStart = input.Position
-            startPos = vu146.Position
-        end
-    end)
-    uis.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStart
-            if math.abs(delta.X) > 3 or math.abs(delta.Y) > 3 then
-                moved = true
-            end
-            vu146.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
-    uis.InputEnded:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-            dragging = false
-            if not moved then
-                vu146open = not vu146open
-                pu144.Visible = vu146open
-            end
-        end
+    vu146.MouseButton1Down:connect(function()
+        vu146open = not vu146open
+        pu144.Visible = vu146open
     end)
 end
 make_screengui(v18)
@@ -1234,7 +1205,7 @@ make_mainbutton(v45, vu35, "   Fish", UDim2.new(0, 0, 0.15, 0))
 make_mainbutton(v38, vu35, "   Player/Mod", UDim2.new(0, 0, 0.15, 0))
 make_mainbutton(v47, vu35, "   Shop", UDim2.new(0, 0, 0, 0))
 make_mainbutton(v_seabtn, vu35, "   Sea", UDim2.new(0, 0, 0.05, 0))
-v_seabtn.Visible = true
+v_seabtn.Visible = false
 make_mainbutton(v43, vu35, "   Sever", UDim2.new(0, 0, 0.1, 0))
 make_mainbutton(v40, vu35, "   Teleport", UDim2.new(0, 0, 0.15, 0))
 make_mainbutton(v39, vu35, "   Setting", UDim2.new(0, 0, 0.1, 0))
@@ -3062,191 +3033,6 @@ game:GetService("RunService").Stepped:Connect(function()
     end
 end)
 make_slider_value(vu22, "Distance", 200, 1000, 0.24, "distancemob")
-_G.table_getitem = {
-    "Sea King fin",
-    "Shark\'s Fin",
-    "Sea Artifact",
-    "Leather",
-    "Shark\'s Canine",
-    "Coral",
-    "Pearl",
-    "Iron",
-    "Rusted Scrap",
-    "Carrot",
-    "Dragon\'s Orb",
-    "Magma Cystal",
-    "Ice Cystal",
-    "Lost Ruby",
-    "Essence of Fire"
-}
-make_select2(m_gif, m_gib, m_gigo_b, vu22, _("getitem_mat"), 0.31)
-m_gib.MouseButton1Down:connect(function()
-    m_gibar.Visible = not m_gibar.Visible
-end)
-m_gigo_b.MouseButton1Down:connect(function()
-    if m_gigo_b.Text ~= "" then
-        m_gigo_b.Text = ""
-        _G.getitem = false
-    else
-        m_gigo_b.Text = "X"
-        _G.getitem = true
-    end
-    __("getitem", _G.getitem)
-    if _G.getitem then
-        spawn(function()
-            get_item_run()
-        end)
-    end
-end)
-make_selectscrollingframe(m_gibar, vu22, 0.38)
-make_auto_selectbutton(m_gib, m_gibar, _G.table_getitem, "Item", 0.05, "getitem_mat")
-local m_qtybox = Instance.new("TextBox")
-m_qtybox.Parent = vu22
-m_qtybox.BackgroundColor3 = Color3.fromRGB(250, 255, 255)
-m_qtybox.Position = UDim2.new(0, 0, 0.45, 0)
-m_qtybox.Size = UDim2.new(0, 498, 0, 30)
-m_qtybox.BorderColor3 = Color3.fromRGB(88, 101, 242)
-m_qtybox.Font = Enum.Font.Ubuntu
-m_qtybox.Text = "Quantity : " .. tostring(_("getitem_qty"))
-m_qtybox.PlaceholderText = "Enter Quantity"
-m_qtybox.TextColor3 = Color3.fromRGB(37, 43, 59)
-m_qtybox.TextSize = 14
-m_qtybox.TextWrapped = true
-m_qtybox.TextXAlignment = Enum.TextXAlignment.Left
-m_qtybox.FocusLost:Connect(function()
-    local n = tonumber(m_qtybox.Text:match("%d+"))
-    if n and n > 0 then
-        __("getitem_qty", n)
-    end
-    m_qtybox.Text = "Quantity : " .. tostring(_("getitem_qty"))
-end)
-m_gigo_f.Parent = vu22
-m_gigo_f.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
-m_gigo_f.Position = UDim2.new(0, 0, 0.52, 0)
-m_gigo_f.Size = UDim2.new(0, 498, 0, 20)
-m_gigo_f.BorderColor3 = Color3.fromRGB(88, 101, 242)
-m_gigo_f.Font = Enum.Font.Ubuntu
-m_gigo_f.Text = "   Get Item Status : Idle"
-m_gigo_f.TextColor3 = Color3.fromRGB(255, 255, 255)
-m_gigo_f.TextSize = 14
-m_gigo_f.TextXAlignment = Enum.TextXAlignment.Left
-function get_item_count(name)
-    local count = 0
-    pcall(function()
-        local stats = game.Players.LocalPlayer:FindFirstChild("PlayerStats")
-        if stats then
-            local mats = stats:FindFirstChild("Materials")
-            if mats and mats:FindFirstChild(name) then
-                count = mats[name].Value
-            end
-        end
-    end)
-    return count
-end
-function get_item_run()
-    local target_name = _("getitem_mat"):gsub("Item : ", "")
-    local want = _("getitem_qty")
-    if target_name == "Select" or target_name == "" then
-        m_gigo_f.Text = "   Get Item Status : Choose Item"
-        _G.getitem = false
-        m_gigo_b.Text = ""
-        return
-    end
-    while _G.getitem do
-        local have = get_item_count(target_name)
-        m_gigo_f.Text = "   Getting " .. target_name .. " : " .. have .. " / " .. want
-        if have >= want then
-            m_gigo_f.Text = "   Done : " .. target_name .. " x" .. have
-            _G.getitem = false
-            m_gigo_b.Text = ""
-            break
-        end
-        pcall(function()
-            material()
-            for i = 1, # mob do
-                local edit = "Lv. " .. mob[i] .. "]"
-                for _, folder in pairs(game.Workspace.Monster:GetChildren()) do
-                    if folder.ClassName == "Folder" then
-                        for _, m in pairs(folder:GetChildren()) do
-                            if string.find(m.Name, edit) and m:FindFirstChild("Humanoid") and m.Humanoid.Health > 0 then
-                                _G.aimbot = true
-                                _G.usetool = true
-                                tp(m.HumanoidRootPart.CFrame * CFrame.new(0, _("distance"), 0) * CFrame.Angles(math.rad(- 90), 0, 0))
-                                if distance(m.HumanoidRootPart.Position) < 60 then
-                                    _G.pos_skill = m.HumanoidRootPart.CFrame
-                                    click()
-                                    autoskill()
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-        task.wait(0.2)
-    end
-end
-make_textlabel(vu22, "Luck Boost (Fast Drop)", 0.59)
-_G.table_luck = {
-    "Sea King fin",
-    "Shark\'s Fin",
-    "Dragon\'s Orb",
-    "Lucidus\'s Totem",
-    "Dark Beard\'s Totem",
-    "Twilight\'s Orb",
-    "Essence of Fire",
-    "Lost Ruby",
-    "Sea Artifact",
-    "Pearl"
-}
-make_select2(m_lkf, m_lkb, m_lkgo_b, vu22, _("luck_target"), 0.66)
-m_lkb.MouseButton1Down:connect(function()
-    m_lkbar.Visible = not m_lkbar.Visible
-end)
-m_lkgo_b.MouseButton1Down:connect(function()
-    if m_lkgo_b.Text ~= "" then
-        m_lkgo_b.Text = ""
-        _G.luckboost = false
-    else
-        m_lkgo_b.Text = "X"
-        _G.luckboost = true
-    end
-    __("luckboost", _G.luckboost)
-end)
-make_selectscrollingframe(m_lkbar, vu22, 0.73)
-make_auto_selectbutton(m_lkb, m_lkbar, _G.table_luck, "Target", 0.05, "luck_target")
-spawn(function()
-    while task.wait(0.1) do
-        pcall(function()
-            if _("luckboost") then
-                _G.dropchance = 100
-                _G.luckmultiplier = 1000
-                local rep = game:GetService("ReplicatedStorage")
-                if rep:FindFirstChild("Chest") and rep.Chest:FindFirstChild("Remotes") then
-                    local funcs = rep.Chest.Remotes:FindFirstChild("Functions")
-                    if funcs then
-                        if funcs:FindFirstChild("DropBoost") then
-                            pcall(function()
-                                funcs.DropBoost:InvokeServer(_("luck_target"):gsub("Target : ", ""))
-                            end)
-                        end
-                        if funcs:FindFirstChild("LootRoll") then
-                            pcall(function()
-                                funcs.LootRoll:InvokeServer(_("luck_target"):gsub("Target : ", ""))
-                            end)
-                        end
-                    end
-                    local events = rep.Chest.Remotes:FindFirstChild("Events")
-                    if events and events:FindFirstChild("ForceDrop") then
-                        pcall(function()
-                            events.ForceDrop:FireServer(_("luck_target"):gsub("Target : ", ""))
-                        end)
-                    end
-                end
-            end
-        end)
-    end
-end)
 make_together(s_f1, s_b1, vu23, "   Mele", 0.03)
 s_b1.MouseButton1Down:connect(function()
     if s_b1.Text ~= "" then
@@ -5036,11 +4822,6 @@ sea_b1.MouseButton1Down:connect(function()
         _G.sea_b1 = true
     end
     __("smarthop", _G.sea_b1)
-    if _G.sea_b1 then
-        spawn(function()
-            sea_smart_run()
-        end)
-    end
 end)
 make_together(sea_f2, sea_b2, vu_sea, "   Auto Hop (Farm Boss)", 0.17)
 sea_b2.MouseButton1Down:connect(function()
@@ -5052,11 +4833,6 @@ sea_b2.MouseButton1Down:connect(function()
         _G.sea_b2 = true
     end
     __("autohop", _G.sea_b2)
-    if _G.sea_b2 then
-        spawn(function()
-            sea_smart_run()
-        end)
-    end
 end)
 make_textlabel(vu_sea, "", 0.24)
 sea_status.Parent = vu_sea
@@ -5078,58 +4854,15 @@ function sea_queue_teleport()
         end
     end)
 end
-function sea_http_get(url)
-    local result = nil
-    pcall(function()
-        local req = (syn and syn.request) or (http and http.request) or http_request or request or (fluxus and fluxus.request)
-        if req then
-            local res = req({ Url = url, Method = "GET" })
-            if res and res.Body then
-                result = res.Body
-            end
-        end
-    end)
-    if not result then
-        pcall(function()
-            result = game:HttpGetAsync(url)
-        end)
-    end
-    if not result then
-        pcall(function()
-            result = game:HttpGet(url)
-        end)
-    end
-    return result
-end
 function sea_get_servers()
     local list = {}
-    local http = game:GetService("HttpService")
     pcall(function()
         local cursor = ""
-        for i = 1, 8 do
-            local url = "https://games.roblox.com/v1/games/" .. _G.SeaPlaceId .. "/servers/Public?sortOrder=Asc&excludeFullGames=true&limit=100"
-            if cursor ~= "" then
-                url = url .. "&cursor=" .. cursor
-            end
-            local data = sea_http_get(url)
-            if not data then
-                break
-            end
-            local ok, body = pcall(function()
-                return http:JSONDecode(data)
-            end)
-            if not ok or type(body) ~= "table" or type(body.data) ~= "table" then
-                break
-            end
-            for _, srv in pairs(body.data) do
-                if type(srv) == "table" and srv.playing and srv.maxPlayers and srv.playing < srv.maxPlayers and srv.id ~= game.JobId then
-                    table.insert(list, srv)
-                end
-            end
-            if body.nextPageCursor and body.nextPageCursor ~= "" then
-                cursor = body.nextPageCursor
-            else
-                break
+        local data = game:HttpGetAsync("https://games.roblox.com/v1/games/" .. _G.SeaPlaceId .. "/servers/Public?sortOrder=Asc&limit=100" .. cursor)
+        local body = hs:JSONDecode(data)
+        for _, srv in pairs(body.data) do
+            if type(srv) == "table" and srv.playing and srv.maxPlayers and srv.playing < srv.maxPlayers and srv.id ~= game.JobId then
+                table.insert(list, srv)
             end
         end
     end)
@@ -5176,22 +4909,6 @@ function sea_hop()
     end)
     task.wait(8)
     _G.sea_hopping = false
-end
-function sea_smart_run()
-    if game.PlaceId ~= _G.SeaPlaceId then
-        sea_status.Text = "   Going To Boss Sea..."
-        sea_queue_teleport()
-        pcall(function()
-            game:GetService("TeleportService"):Teleport(_G.SeaPlaceId, game.Players.LocalPlayer)
-        end)
-        return
-    end
-    if not sea_boss_present() then
-        sea_status.Text = "   No Boss Here - Searching..."
-        sea_hop()
-    else
-        sea_status.Text = "   Boss Found In This Server"
-    end
 end
 spawn(function()
     while task.wait(5) do
@@ -5458,7 +5175,7 @@ spawn(function()
     end)
     while task.wait(1) do
         pcall(function()
-            v_seabtn.Visible = true
+            v_seabtn.Visible = game.PlaceId == _G.SeaPlaceId
         end)
     end
 end)
@@ -5899,23 +5616,3 @@ local v497 = {
     })
 }
 v496(v497)
-pcall(function()
-    if setfpscap then
-        setfpscap(0)
-    elseif set_fps_cap then
-        set_fps_cap(0)
-    elseif setfflag then
-        setfflag("DFIntTaskSchedulerTargetFps", "1000")
-    end
-end)
-spawn(function()
-    while task.wait(10) do
-        pcall(function()
-            if setfpscap then
-                setfpscap(0)
-            elseif set_fps_cap then
-                set_fps_cap(0)
-            end
-        end)
-    end
-end)
