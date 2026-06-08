@@ -4843,6 +4843,38 @@ sea_b2.MouseButton1Down:connect(function()
     end
     __("autohop", _G.sea_b2)
 end)
+local sea_target_b = Instance.new("TextButton")
+sea_target_b.Parent = vu_sea
+sea_target_b.BackgroundColor3 = Color3.fromRGB(52, 60, 80)
+sea_target_b.Position = UDim2.new(0, 0, 0.205, 0)
+sea_target_b.Size = UDim2.new(0, 498, 0, 28)
+sea_target_b.BorderSizePixel = 0
+sea_target_b.Font = Enum.Font.GothamBold
+sea_target_b.TextColor3 = Color3.fromRGB(255, 255, 255)
+sea_target_b.TextSize = 14
+sea_target_b.TextXAlignment = Enum.TextXAlignment.Left
+local sea_target_corner = Instance.new("UICorner")
+sea_target_corner.CornerRadius = UDim.new(0, 6)
+sea_target_corner.Parent = sea_target_b
+function sea_update_target_text()
+    local w = sea_get_want()
+    if w == nil or w == "" then
+        w = "Any"
+    end
+    sea_target_b.Text = "   Target Boss : " .. w
+end
+sea_update_target_text()
+sea_target_b.MouseButton1Down:connect(function()
+    local w = sea_get_want()
+    if w == "Hydra" then
+        sea_set_want("Sea King")
+    elseif w == "Sea King" then
+        sea_set_want("")
+    else
+        sea_set_want("Hydra")
+    end
+    sea_update_target_text()
+end)
 make_textlabel(vu_sea, "", 0.24)
 sea_status.Parent = vu_sea
 sea_status.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
@@ -4860,6 +4892,59 @@ _G.sea_server_list = {}
 _G.sea_all = {}
 _G.sea_count = 0
 _G.sea_busy = false
+_G.sea_want_file = "PRODE HUB/Save Script/sea_want.txt"
+function sea_set_want(boss)
+    _G.sea_want = boss
+    pcall(function()
+        if writefile and isfolder then
+            if not isfolder("PRODE HUB") then makefolder("PRODE HUB") end
+            if not isfolder("PRODE HUB/Save Script/") then makefolder("PRODE HUB/Save Script/") end
+            if boss and boss ~= "" then
+                writefile(_G.sea_want_file, boss)
+            elseif delfile and isfile and isfile(_G.sea_want_file) then
+                delfile(_G.sea_want_file)
+            end
+        end
+    end)
+end
+function sea_get_want()
+    if _G.sea_want ~= nil then
+        return _G.sea_want
+    end
+    pcall(function()
+        if readfile and isfile and isfile(_G.sea_want_file) then
+            _G.sea_want = readfile(_G.sea_want_file)
+        end
+    end)
+    return _G.sea_want
+end
+function sea_actual_boss()
+    local boss = nil
+    pcall(function()
+        if game.Workspace:FindFirstChild("SeaMonster") then
+            if game.Workspace.SeaMonster:FindFirstChild("HydraSeaKing") then
+                boss = "Hydra"
+            elseif game.Workspace.SeaMonster:FindFirstChild("SeaKing") then
+                boss = "Sea King"
+            end
+        end
+        if not boss and game.Workspace:FindFirstChild("Island") then
+            for _, v in pairs(game.Workspace.Island:GetChildren()) do
+                if string.find(v.Name, "Sea King") or string.find(v.Name, "Legacy Island") then
+                    if v:FindFirstChild("HydraStand") then
+                        boss = "Hydra"
+                        break
+                    elseif v:FindFirstChild("ChestSpawner") then
+                        boss = "Sea King"
+                        break
+                    end
+                end
+            end
+        end
+    end)
+    return boss
+end
+sea_get_want()
 make_select1(sea_sel, sea_selb, vu_sea, "   Select Server", 0.31)
 sea_selb.MouseButton1Down:connect(function()
     sea_dbar.Visible = not sea_dbar.Visible
@@ -4952,26 +5037,15 @@ function sea_get_servers()
     _G.sea_busy = false
     return _G.sea_all or {}
 end
-function sea_boss_present()
-    local found = false
-    pcall(function()
-        if game.Workspace:FindFirstChild("SeaMonster") then
-            if game.Workspace.SeaMonster:FindFirstChild("SeaKing") or game.Workspace.SeaMonster:FindFirstChild("HydraSeaKing") then
-                found = true
-            end
-        end
-        if not found and game.Workspace:FindFirstChild("Island") then
-            for _, v in pairs(game.Workspace.Island:GetChildren()) do
-                if string.find(v.Name, "Sea King") or string.find(v.Name, "Legacy Island") then
-                    if v:FindFirstChild("HydraStand") or v:FindFirstChild("ChestSpawner") then
-                        found = true
-                        break
-                    end
-                end
-            end
-        end
-    end)
-    return found
+function sea_boss_present(want)
+    local actual = sea_actual_boss()
+    if not actual then
+        return false
+    end
+    if want and want ~= "" then
+        return actual == want
+    end
+    return true
 end
 _G.sea_hopping = false
 _G.sea_tried = {}
@@ -5015,6 +5089,7 @@ function sea_hop()
         return
     end
     sea_status.Text = "   Hopping... (" .. #servers .. " Available)"
+    local want = sea_get_want()
     local pool = {}
     for _, s in ipairs(servers) do
         pool[#pool + 1] = s
@@ -5022,6 +5097,13 @@ function sea_hop()
     for i = #pool, 2, -1 do
         local j = math.random(1, i)
         pool[i], pool[j] = pool[j], pool[i]
+    end
+    if want and want ~= "" then
+        table.sort(pool, function(a, b)
+            local av = (a.boss == want) and 1 or 0
+            local bv = (b.boss == want) and 1 or 0
+            return av > bv
+        end)
     end
     servers = pool
     for _, srv in ipairs(servers) do
@@ -5058,6 +5140,7 @@ function sea_make_row(srv, index)
     rc.Parent = row
     row.MouseButton1Click:connect(function()
         _G.sea_selected = srv.id
+        sea_set_want(srv.boss)
         sea_selb.Text = "   " .. srv.boss .. " | " .. srv.playing .. "/" .. srv.maxPlayers
         sea_dbar.Visible = false
         sea_status.Text = "   Joining " .. srv.boss .. " server..."
@@ -5136,15 +5219,21 @@ end)
 spawn(function()
     while task.wait(3) do
         pcall(function()
+            local want = sea_get_want()
             if game.PlaceId == _G.SeaPlaceId then
-                if (_("smarthop") or _("autohop")) and not sea_boss_present() then
-                    if not _G.sea_hopping then
-                        sea_status.Text = "   No Boss Here - Searching..."
-                        sea_hop()
-                    end
-                elseif sea_boss_present() then
-                    if _("smarthop") or _("autohop") then
-                        sea_status.Text = "   Boss Found In This Server"
+                if (_("smarthop") or _("autohop")) then
+                    if sea_actual_boss() == nil then
+                        if not _G.sea_hopping then
+                            sea_status.Text = "   No Boss Here - Searching..."
+                            sea_hop()
+                        end
+                    elseif want and want ~= "" and sea_actual_boss() ~= want then
+                        if not _G.sea_hopping then
+                            sea_status.Text = "   Wrong Boss (" .. tostring(sea_actual_boss()) .. ") - Searching " .. want .. "..."
+                            sea_hop()
+                        end
+                    else
+                        sea_status.Text = "   " .. tostring(sea_actual_boss()) .. " Found In This Server"
                     end
                 end
             else
@@ -5166,7 +5255,7 @@ spawn(function()
     end
 end)
 spawn(function()
-    while task.wait(1) do
+    while task.wait() do
         pcall(function()
             if game.PlaceId == _G.SeaPlaceId and _("autohop") then
                 if sea_boss_present() then
@@ -5177,10 +5266,13 @@ spawn(function()
                         ken()
                     end
                     local target = nil
-                    if game.Workspace.SeaMonster:FindFirstChild("HydraSeaKing") and game.Workspace.SeaMonster.HydraSeaKing.Humanoid.Health > 0 then
-                        target = game.Workspace.SeaMonster.HydraSeaKing.HumanoidRootPart.CFrame
-                    elseif game.Workspace.SeaMonster:FindFirstChild("SeaKing") and game.Workspace.SeaMonster.SeaKing.Humanoid.Health > 0 then
-                        target = game.Workspace.SeaMonster.SeaKing.HumanoidRootPart.CFrame
+                    local sm = game.Workspace:FindFirstChild("SeaMonster")
+                    if sm then
+                        if sm:FindFirstChild("HydraSeaKing") and sm.HydraSeaKing:FindFirstChild("HumanoidRootPart") and sm.HydraSeaKing.Humanoid.Health > 0 then
+                            target = sm.HydraSeaKing.HumanoidRootPart.CFrame
+                        elseif sm:FindFirstChild("SeaKing") and sm.SeaKing:FindFirstChild("HumanoidRootPart") and sm.SeaKing.Humanoid.Health > 0 then
+                            target = sm.SeaKing.HumanoidRootPart.CFrame
+                        end
                     end
                     if target then
                         _G.pos_skill = target
