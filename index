@@ -5188,20 +5188,22 @@ spawn(function()
     while task.wait(1) do
         pcall(function()
             local want = sea_get_want()
+            local enforce = (want and want ~= "") or _("smarthop") or _("autohop")
             if game.PlaceId == _G.SeaPlaceId then
-                if (_("smarthop") or _("autohop")) then
-                    if sea_actual_boss() == nil then
+                if enforce then
+                    local actual = sea_actual_boss()
+                    if actual == nil then
                         if not _G.sea_hopping then
                             sea_status.Text = "   No Boss Here - Searching..."
                             sea_hop()
                         end
-                    elseif want and want ~= "" and sea_actual_boss() ~= want then
+                    elseif want and want ~= "" and actual ~= want then
                         if not _G.sea_hopping then
-                            sea_status.Text = "   Wrong Boss (" .. tostring(sea_actual_boss()) .. ") - Searching " .. want .. "..."
+                            sea_status.Text = "   Wrong Boss (" .. tostring(actual) .. ") - Searching " .. want .. "..."
                             sea_hop()
                         end
                     else
-                        sea_status.Text = "   " .. tostring(sea_actual_boss()) .. " Found In This Server"
+                        sea_status.Text = "   " .. tostring(actual) .. " Found In This Server"
                     end
                 end
             else
