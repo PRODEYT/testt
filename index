@@ -4818,7 +4818,7 @@ spawn(function()
         end)
     end
 end)
-_G.SeaPlaceId = 15759515082
+_G.SeaPlaceId = game.PlaceId
 _G.SpawnCFrame = nil
 make_textlabel(vu_sea, "Smart Hop Sea King and Hydra", 0.03)
 make_together(sea_f1, sea_b1, vu_sea, "   Smart Hop Sea King - Hydra", 0.1)
@@ -4986,17 +4986,18 @@ end)
 function sea_do_teleport(jobId)
     sea_queue_teleport()
     spawn(function()
-        for attempt = 1, 5 do
-            local ok, err = pcall(function()
-                _G.TPS:TeleportToPlaceInstance(_G.SeaPlaceId, jobId, game.Players.LocalPlayer)
+        local lp = game:GetService("Players").LocalPlayer
+        for attempt = 1, 6 do
+            local ok = pcall(function()
+                _G.TPS:TeleportToPlaceInstance(_G.SeaPlaceId, jobId, lp)
             end)
             if ok then
                 return
             end
-            task.wait(2)
+            task.wait(3)
         end
         pcall(function()
-            _G.TPS:Teleport(_G.SeaPlaceId, game.Players.LocalPlayer)
+            _G.TPS:Teleport(_G.SeaPlaceId, lp)
         end)
     end)
     return true
