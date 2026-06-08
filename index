@@ -4843,38 +4843,6 @@ sea_b2.MouseButton1Down:connect(function()
     end
     __("autohop", _G.sea_b2)
 end)
-local sea_target_b = Instance.new("TextButton")
-sea_target_b.Parent = vu_sea
-sea_target_b.BackgroundColor3 = Color3.fromRGB(52, 60, 80)
-sea_target_b.Position = UDim2.new(0, 0, 0.205, 0)
-sea_target_b.Size = UDim2.new(0, 498, 0, 28)
-sea_target_b.BorderSizePixel = 0
-sea_target_b.Font = Enum.Font.GothamBold
-sea_target_b.TextColor3 = Color3.fromRGB(255, 255, 255)
-sea_target_b.TextSize = 14
-sea_target_b.TextXAlignment = Enum.TextXAlignment.Left
-local sea_target_corner = Instance.new("UICorner")
-sea_target_corner.CornerRadius = UDim.new(0, 6)
-sea_target_corner.Parent = sea_target_b
-function sea_update_target_text()
-    local w = sea_get_want()
-    if w == nil or w == "" then
-        w = "Any"
-    end
-    sea_target_b.Text = "   Target Boss : " .. w
-end
-sea_update_target_text()
-sea_target_b.MouseButton1Down:connect(function()
-    local w = sea_get_want()
-    if w == "Hydra" then
-        sea_set_want("Sea King")
-    elseif w == "Sea King" then
-        sea_set_want("")
-    else
-        sea_set_want("Hydra")
-    end
-    sea_update_target_text()
-end)
 make_textlabel(vu_sea, "", 0.24)
 sea_status.Parent = vu_sea
 sea_status.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
@@ -4945,6 +4913,38 @@ function sea_actual_boss()
     return boss
 end
 sea_get_want()
+local sea_target_b = Instance.new("TextButton")
+sea_target_b.Parent = vu_sea
+sea_target_b.BackgroundColor3 = Color3.fromRGB(52, 60, 80)
+sea_target_b.Position = UDim2.new(0, 0, 0.205, 0)
+sea_target_b.Size = UDim2.new(0, 498, 0, 28)
+sea_target_b.BorderSizePixel = 0
+sea_target_b.Font = Enum.Font.GothamBold
+sea_target_b.TextColor3 = Color3.fromRGB(255, 255, 255)
+sea_target_b.TextSize = 14
+sea_target_b.TextXAlignment = Enum.TextXAlignment.Left
+local sea_target_corner = Instance.new("UICorner")
+sea_target_corner.CornerRadius = UDim.new(0, 6)
+sea_target_corner.Parent = sea_target_b
+function sea_update_target_text()
+    local w = sea_get_want()
+    if w == nil or w == "" then
+        w = "Any"
+    end
+    sea_target_b.Text = "   Target Boss : " .. w
+end
+sea_update_target_text()
+sea_target_b.MouseButton1Down:connect(function()
+    local w = sea_get_want()
+    if w == "Hydra" then
+        sea_set_want("Sea King")
+    elseif w == "Sea King" then
+        sea_set_want("")
+    else
+        sea_set_want("Hydra")
+    end
+    sea_update_target_text()
+end)
 make_select1(sea_sel, sea_selb, vu_sea, "   Select Server", 0.31)
 sea_selb.MouseButton1Down:connect(function()
     sea_dbar.Visible = not sea_dbar.Visible
@@ -5217,7 +5217,7 @@ spawn(function()
     end
 end)
 spawn(function()
-    while task.wait(3) do
+    while task.wait(1) do
         pcall(function()
             local want = sea_get_want()
             if game.PlaceId == _G.SeaPlaceId then
