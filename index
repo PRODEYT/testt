@@ -2,7 +2,19 @@ _G.PRODE_ScriptUrl = "https://raw.githubusercontent.com/PRODEYT/testt/refs/heads
 _G.name_game = "King_Legacy2ug"
 _G.Setting = {
     main_tool = {
-        "Tool : Mele, Fruit, Sword"
+        "Tool : Mele"
+    },
+    tool_mele = {
+        true,
+        "m_b1"
+    },
+    tool_fruit = {
+        false,
+        "m_b4"
+    },
+    tool_sword = {
+        false,
+        "m_b5"
     },
     auto_farm = {
         false,
@@ -36,19 +48,6 @@ _G.Setting = {
     fruit = {
         false,
         "s_b4"
-    },
-    male = {
-        false,
-        "s_b5"
-    },
-    use_skills_fruit = {
-        true
-    },
-    use_skills_sword = {
-        true
-    },
-    use_skills_male = {
-        true
     },
     buso = {
         true,
@@ -2820,9 +2819,18 @@ function autoskill()
     end
 end
 function usetool()
-    tooltip("Combat")
-    tooltip("Sword")
-    tooltip("Fruit Power")
+    if _("tool_mele") then
+        tooltip("Combat")
+        click()
+    end
+    if _("tool_sword") then
+        tooltip("Sword")
+        click()
+    end
+    if _("tool_fruit") then
+        tooltip("Fruit Power")
+        click()
+    end
 end
 function buso()
     if game:GetService("Workspace").PlayerCharacters[game:GetService("Players").LocalPlayer.Name].Services.Haki.Value == 0 then
@@ -2942,19 +2950,43 @@ end
 function decode(p223)
     return vu221(vu214(p223), vu195)
 end
-make_select1(m_f1, m_b1, vu22, _("main_tool"), 0.03)
+make_together(m_f1, m_b1, vu22, "   Mele", 0.03)
+m_b1.Text = _("tool_mele") and "X" or ""
 m_b1.MouseButton1Down:connect(function()
-    m_tbar.Visible = not m_tbar.Visible
+    if m_b1.Text ~= "" then
+        m_b1.Text = ""
+        _G.m_b1 = false
+    else
+        m_b1.Text = "X"
+        _G.m_b1 = true
+    end
+    __("tool_mele", _G.m_b1)
 end)
-_G.table_tool = {
-    "Mele",
-    "Fruit",
-    "Sword",
-    "Male"
-}
-make_selectscrollingframe(m_tbar, vu22, 0.1, 0)
-make_auto_selectbutton(m_b1, m_tbar, _G.table_tool, "Tool", 0.05, "main_tool")
-make_together(m_f2, m_b2, vu22, "   Auto Farm Level", 0.1)
+make_together(m_f4, m_b4, vu22, "   Fruit", 0.1)
+m_b4.Text = _("tool_fruit") and "X" or ""
+m_b4.MouseButton1Down:connect(function()
+    if m_b4.Text ~= "" then
+        m_b4.Text = ""
+        _G.m_b4 = false
+    else
+        m_b4.Text = "X"
+        _G.m_b4 = true
+    end
+    __("tool_fruit", _G.m_b4)
+end)
+make_together(m_f5, m_b5, vu22, "   Sword", 0.17)
+m_b5.Text = _("tool_sword") and "X" or ""
+m_b5.MouseButton1Down:connect(function()
+    if m_b5.Text ~= "" then
+        m_b5.Text = ""
+        _G.m_b5 = false
+    else
+        m_b5.Text = "X"
+        _G.m_b5 = true
+    end
+    __("tool_sword", _G.m_b5)
+end)
+make_together(m_f2, m_b2, vu22, "   Auto Farm Level", 0.24)
 m_b2.MouseButton1Down:connect(function()
     if m_b2.Text ~= "" then
         m_b2.Text = ""
@@ -3008,7 +3040,7 @@ spawn(function()
         end)
     end
 end)
-make_together(m_f3, m_b3, vu22, "   Auto kill Mob Distance", 0.17)
+make_together(m_f3, m_b3, vu22, "   Auto kill Mob Distance", 0.31)
 m_b3.MouseButton1Down:connect(function()
     if m_b3.Text ~= "" then
         m_b3.Text = ""
@@ -3047,7 +3079,7 @@ game:GetService("RunService").Stepped:Connect(function()
         end
     end
 end)
-make_slider_value(vu22, "Distance", 200, 1000, 0.24, "distancemob")
+make_slider_value(vu22, "Distance", 200, 1000, 0.38, "distancemob")
 make_together(s_f1, s_b1, vu23, "   Mele", 0.03)
 s_b1.MouseButton1Down:connect(function()
     if s_b1.Text ~= "" then
