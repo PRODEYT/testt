@@ -2,7 +2,7 @@ _G.PRODE_ScriptUrl = "https://raw.githubusercontent.com/PRODEYT/testt/refs/heads
 _G.name_game = "King_Legacy2ug"
 _G.Setting = {
     main_tool = {
-        "Tool : Mele"
+        "Tool : Mele, Fruit, Sword"
     },
     auto_farm = {
         false,
@@ -2807,17 +2807,9 @@ function autoskill()
     end
 end
 function usetool()
-    if m_b1.Text ~= "Tool : Mele" then
-        if m_b1.Text ~= "Tool : Sword" then
-            if m_b1.Text == "Tool : Fruit" then
-                tooltip("Fruit Power")
-            end
-        else
-            tooltip("Sword")
-        end
-    else
-        tooltip("Combat")
-    end
+    tooltip("Combat")
+    tooltip("Sword")
+    tooltip("Fruit Power")
 end
 function buso()
     if game:GetService("Workspace").PlayerCharacters[game:GetService("Players").LocalPlayer.Name].Services.Haki.Value == 0 then
