@@ -2830,6 +2830,13 @@ function usetool()
     elseif v == "Tool : Fruit" then
         tooltip("Fruit Power")
         click()
+    else
+        tooltip("Combat")
+        click()
+        tooltip("Sword")
+        click()
+        tooltip("Fruit Power")
+        click()
     end
 end
 function buso()
