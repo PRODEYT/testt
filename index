@@ -4889,28 +4889,21 @@ end
 function sea_actual_boss()
     local boss = nil
     pcall(function()
-        if game.Workspace:FindFirstChild("SeaMonster") then
-            if game.Workspace.SeaMonster:FindFirstChild("HydraSeaKing") then
+        local sm = game.Workspace:FindFirstChild("SeaMonster")
+        if sm then
+            local h = sm:FindFirstChild("HydraSeaKing")
+            if h and h:FindFirstChild("Humanoid") and h.Humanoid.Health > 0 and h:FindFirstChild("HumanoidRootPart") then
                 boss = "Hydra"
-            elseif game.Workspace.SeaMonster:FindFirstChild("SeaKing") then
-                boss = "Sea King"
-            end
-        end
-        if not boss and game.Workspace:FindFirstChild("Island") then
-            for _, v in pairs(game.Workspace.Island:GetChildren()) do
-                if string.find(v.Name, "Sea King") or string.find(v.Name, "Legacy Island") then
-                    if v:FindFirstChild("HydraStand") then
-                        boss = "Hydra"
-                        break
-                    elseif v:FindFirstChild("ChestSpawner") then
-                        boss = "Sea King"
-                        break
-                    end
+            else
+                local s = sm:FindFirstChild("SeaKing")
+                if s and s:FindFirstChild("Humanoid") and s.Humanoid.Health > 0 and s:FindFirstChild("HumanoidRootPart") then
+                    boss = "Sea King"
                 end
             end
         end
     end)
     return boss
+end
 end
 sea_get_want()
 make_select1(sea_sel, sea_selb, vu_sea, "   Select Server", 0.31)
@@ -5188,7 +5181,7 @@ spawn(function()
     while task.wait(1) do
         pcall(function()
             local want = sea_get_want()
-            local enforce = (want and want ~= "") or _("smarthop") or _("autohop")
+            local enforce = _("smarthop") or _("autohop")
             if game.PlaceId == _G.SeaPlaceId then
                 if enforce then
                     local actual = sea_actual_boss()
