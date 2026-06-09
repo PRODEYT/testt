@@ -37,6 +37,19 @@ _G.Setting = {
         false,
         "s_b4"
     },
+    male = {
+        false,
+        "s_b5"
+    },
+    use_skills_fruit = {
+        true
+    },
+    use_skills_sword = {
+        true
+    },
+    use_skills_male = {
+        true
+    },
     buso = {
         true,
         "st_b1"
@@ -2936,7 +2949,8 @@ end)
 _G.table_tool = {
     "Mele",
     "Fruit",
-    "Sword"
+    "Sword",
+    "Male"
 }
 make_selectscrollingframe(m_tbar, vu22, 0.1, 0)
 make_auto_selectbutton(m_b1, m_tbar, _G.table_tool, "Tool", 0.05, "main_tool")
