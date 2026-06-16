@@ -2,7 +2,7 @@ _G.PRODE_ScriptUrl = "https://raw.githubusercontent.com/PRODEYT/testt/refs/heads
 _G.name_game = "King_Legacy2ug"
 _G.Setting = {
     main_tool = {
-        "Tool : Use All"
+        { Mele = false, Sword = true, Fruit = false }
     },
     auto_farm = {
         false,
@@ -228,6 +228,9 @@ function LoadSettings()
                         break
                     end
                     _G.Setting[v6] = v7
+                end
+                if type(_G.Setting.main_tool[1]) ~= "table" then
+                    _G.Setting.main_tool[1] = { Mele = false, Sword = true, Fruit = false }
                 end
             else
                 writefile(vu1, game:GetService("HttpService"):JSONEncode(_G.Setting))
@@ -2821,33 +2824,32 @@ function autoskill()
     end
 end
 function usetool()
-    local v = _("main_tool")
-    if v == "Tool : Use All" then
+    local selected = _G.Setting.main_tool[1]
+    if type(selected) ~= "table" then
+        selected = { Sword = true }
+        _G.Setting.main_tool[1] = selected
+    end
+    local has_any = false
+    for k, v in pairs(selected) do
+        if v then
+            has_any = true
+            break
+        end
+    end
+    if not has_any then
+        tooltip("Sword")
+        click()
+        return
+    end
+    if selected.Mele then
         tooltip("Combat")
         click()
+    end
+    if selected.Sword then
         tooltip("Sword")
         click()
-        tooltip("Fruit Power")
-        click()
-    elseif v == "Tool : Sword & Fruit" then
-        tooltip("Sword")
-        click()
-        tooltip("Fruit Power")
-        click()
-    elseif v == "Tool : Mele" then
-        tooltip("Combat")
-        click()
-    elseif v == "Tool : Sword" then
-        tooltip("Sword")
-        click()
-    elseif v == "Tool : Fruit" then
-        tooltip("Fruit Power")
-        click()
-    else
-        tooltip("Combat")
-        click()
-        tooltip("Sword")
-        click()
+    end
+    if selected.Fruit then
         tooltip("Fruit Power")
         click()
     end
@@ -2970,19 +2972,94 @@ end
 function decode(p223)
     return vu221(vu214(p223), vu195)
 end
-make_select1(m_f1, m_b1, vu22, _("main_tool"), 0.03)
+function get_tool_text()
+    local selected = _G.Setting.main_tool[1]
+    if type(selected) ~= "table" then
+        selected = { Sword = true }
+        _G.Setting.main_tool[1] = selected
+    end
+    local names = {}
+    if selected.Mele then table.insert(names, "Mele") end
+    if selected.Sword then table.insert(names, "Sword") end
+    if selected.Fruit then table.insert(names, "Fruit") end
+    if #names == 0 then
+        return "Tool : Sword"
+    end
+    return "Tool : " .. table.concat(names, ", ")
+end
+function make_tool_checkbox(tool_name, display_name, pos)
+    local label = Instance.new("TextLabel")
+    label.Parent = m_tbar
+    label.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
+    label.Position = pos
+    label.Size = UDim2.new(0, 340, 0, 20)
+    label.BorderSizePixel = 0
+    label.BorderColor3 = Color3.fromRGB(88, 101, 242)
+    label.Font = Enum.Font.Gotham
+    label.Text = "   " .. display_name
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextSize = 14
+    label.ZIndex = 9
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = label
+    local checkbox = Instance.new("TextButton")
+    checkbox.Parent = label
+    checkbox.BackgroundColor3 = Color3.fromRGB(26, 30, 42)
+    checkbox.Position = UDim2.new(0.85, 0, 0, 0)
+    checkbox.Size = UDim2.new(0, 20, 0, 20)
+    checkbox.BorderSizePixel = 1
+    checkbox.BorderColor3 = Color3.fromRGB(88, 101, 242)
+    checkbox.Text = ""
+    checkbox.ZIndex = 10
+    local cb_corner = Instance.new("UICorner")
+    cb_corner.CornerRadius = UDim.new(0, 4)
+    cb_corner.Parent = checkbox
+    local spot = Instance.new("Frame")
+    spot.Parent = checkbox
+    spot.AnchorPoint = Vector2.new(0.5, 0.5)
+    spot.Position = UDim2.new(0.5, 0, 0.5, 0)
+    spot.Size = UDim2.new(0, 10, 0, 10)
+    spot.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    spot.BorderSizePixel = 0
+    spot.ZIndex = 11
+    local spot_corner = Instance.new("UICorner")
+    spot_corner.CornerRadius = UDim.new(1, 0)
+    spot_corner.Parent = spot
+    local function update_state()
+        local selected = _G.Setting.main_tool[1]
+        if type(selected) ~= "table" then
+            selected = { Sword = true }
+            _G.Setting.main_tool[1] = selected
+        end
+        if selected[tool_name] then
+            spot.Visible = true
+        else
+            spot.Visible = false
+        end
+        m_b1.Text = get_tool_text()
+    end
+    checkbox.MouseButton1Down:Connect(function()
+        local selected = _G.Setting.main_tool[1]
+        if type(selected) ~= "table" then
+            selected = { Sword = true }
+            _G.Setting.main_tool[1] = selected
+        end
+        selected[tool_name] = not selected[tool_name]
+        update_state()
+        SaveSettings()
+    end)
+    update_state()
+end
+make_select1(m_f1, m_b1, vu22, get_tool_text(), 0.03)
 m_b1.MouseButton1Down:connect(function()
     m_tbar.Visible = not m_tbar.Visible
 end)
-_G.table_tool = {
-    "Use All",
-    "Sword & Fruit",
-    "Mele",
-    "Sword",
-    "Fruit"
-}
 make_selectscrollingframe(m_tbar, vu22, 0.1, 0)
-make_auto_selectbutton(m_b1, m_tbar, _G.table_tool, "Tool", 0.05, "main_tool")
+make_tool_checkbox("Mele", "Mele", UDim2.new(0, 0, 0, 0))
+make_tool_checkbox("Sword", "Sword", UDim2.new(0, 0, 0.05, 0))
+make_tool_checkbox("Fruit", "Fruit", UDim2.new(0, 0, 0.1, 0))
 make_together(m_f2, m_b2, vu22, "   Auto Farm Level", 0.1)
 m_b2.MouseButton1Down:connect(function()
     if m_b2.Text ~= "" then
