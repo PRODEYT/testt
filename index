@@ -513,18 +513,23 @@ function __(p49, p50)
 end
 function load_image(url, name)
     local ok, result = pcall(function()
-        local getasset = (syn and syn.crypt and getcustomasset) or getcustomasset or getsynasset
+        local getasset = getcustomasset or getsynasset
         if not (getasset and writefile and isfile) then
             return nil
         end
         local path = "PRODE HUB/Assets/" .. name
         if not isfolder("PRODE HUB") then makefolder("PRODE HUB") end
         if not isfolder("PRODE HUB/Assets") then makefolder("PRODE HUB/Assets") end
-        if not isfile(path) then
-            local data = game:HttpGetAsync(url)
-            writefile(path, data)
+        if isfile(path) then
+            return getasset(path)
         end
-        return getasset(path)
+        -- download in the background so the menu opens instantly
+        task.spawn(function()
+            pcall(function()
+                writefile(path, game:HttpGetAsync(url))
+            end)
+        end)
+        return nil
     end)
     if ok and result then
         return result
@@ -1036,26 +1041,54 @@ function make_buttonnumber(p105, p106, p107, p108, p109, p110, p111)
 end
 function make_button(p112, p113, p114, p115, p116)
     p112.Parent = p114
-    p112.BackgroundColor3 = Color3.fromRGB(37, 43, 59)
+    p112.BackgroundColor3 = Color3.fromRGB(30, 35, 50)
+    p112.BackgroundTransparency = 0.1
     p112.Position = UDim2.new(0, 0, p116, 0)
     p112.Size = UDim2.new(0, 498, 0, 30)
-    p112.BorderColor3 = Color3.fromRGB(88, 101, 242)
-    p112.Font = Enum.Font.Ubuntu
+    p112.BorderSizePixel = 0
+    p112.Font = Enum.Font.GothamMedium
     p112.Text = p115
-    p112.TextColor3 = Color3.fromRGB(255, 255, 255)
+    p112.TextColor3 = Color3.fromRGB(235, 238, 250)
     p112.TextSize = 14
     p112.TextWrapped = true
     p112.TextXAlignment = Enum.TextXAlignment.Left
+    local rowCorner = Instance.new("UICorner")
+    rowCorner.CornerRadius = UDim.new(0, 8)
+    rowCorner.Parent = p112
+    local rowStroke = Instance.new("UIStroke")
+    rowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    rowStroke.Color = Color3.fromRGB(88, 101, 242)
+    rowStroke.Transparency = 0.6
+    rowStroke.Thickness = 1
+    rowStroke.Parent = p112
     p113.Name = "name2"
     p113.Parent = p112
+    p113.AutoButtonColor = false
     p113.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
     p113.Position = UDim2.new(0.85, 0, 0.05, 0)
     p113.Size = UDim2.new(0, 80, 0, 25)
-    p113.BorderColor3 = Color3.fromRGB(26, 30, 42)
-    p113.Font = Enum.Font.SourceSans
+    p113.BorderSizePixel = 0
+    p113.Font = Enum.Font.GothamBold
     p113.Text = "Button"
-    p113.TextColor3 = Color3.fromRGB(26, 30, 42)
-    p113.TextSize = 16
+    p113.TextColor3 = Color3.fromRGB(255, 255, 255)
+    p113.TextSize = 14
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 7)
+    btnCorner.Parent = p113
+    local TS = game:GetService("TweenService")
+    local info = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    p113.MouseEnter:Connect(function()
+        TS:Create(p113, info, {BackgroundColor3 = Color3.fromRGB(110, 122, 255)}):Play()
+    end)
+    p113.MouseLeave:Connect(function()
+        TS:Create(p113, info, {BackgroundColor3 = Color3.fromRGB(88, 101, 242)}):Play()
+    end)
+    p113.MouseButton1Down:Connect(function()
+        TS:Create(p113, info, {BackgroundColor3 = Color3.fromRGB(64, 75, 200)}):Play()
+    end)
+    p113.MouseButton1Up:Connect(function()
+        TS:Create(p113, info, {BackgroundColor3 = Color3.fromRGB(88, 101, 242)}):Play()
+    end)
 end
 function make_textbox(p117, p118, p119, p120)
     p117.Parent = p118
@@ -3426,7 +3459,20 @@ t_b3.MouseButton1Down:connect(function()
 end)
 make_button(t_f4, t_b4, vu26, "Sever Hop", 0.38)
 t_b4.MouseButton1Down:connect(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/NTTTTTTTT/Main/main/Svv"))()
+    task.spawn(function()
+        pcall(function()
+            local HS = game:GetService("HttpService")
+            local TP = game:GetService("TeleportService")
+            local url = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+            local data = HS:JSONDecode(game:HttpGet(url))
+            for _, sv in ipairs(data.data or {}) do
+                if sv.id ~= game.JobId and sv.playing < sv.maxPlayers then
+                    TP:TeleportToPlaceInstance(game.PlaceId, sv.id, game.Players.LocalPlayer)
+                    return
+                end
+            end
+        end)
+    end)
 end)
 make_select1(cb_f1, cb_b1, vu27, _("player"), 0.03)
 cb_b1.MouseButton1Down:connect(function()
@@ -5535,443 +5581,6 @@ spawn(function()
         end)
     end
 end)
-_G.webhook = {
-    sk = "https://discord.com/api/webhooks/1276927002359758930/VOB9dUxSgoZSYpuZAeBAGNxHLqXrkvGuOlhpLVS1wBky1UXDA4FtI5TQcQ1V5c5V_a-z",
-    hd = "https://discord.com/api/webhooks/1276926958600458280/2_xCpNb1_VUjrI3dplTO6nuNMWnbUfGAOSZlXqNYetZCOVPLdQ1v5GTaMpYEakmjjOtX",
-    gs = "https://discord.com/api/webhooks/1434514100553125939/9CXSqNJzudDV40p-ETbLQDwVRAgKw48g-gjtIfn1kJS2Niyzoj57zGzlZ13-WSK-Gygy",
-    ks = "https://discord.com/api/webhooks/1434514144425410631/iJVpEw7gtVvrhmzUj6oQ80nJYeJ00jagytbyJE7t-7yXZ654S6uc-i6l5N-_7HwD9NuG",
-    race = "https://discord.com/api/webhooks/1434514210670383198/TJhxkz4zmuB3wRuLmC3r1Fron7a-RGaJ9o4OBaEXFkjI6PU9VkF3wesWey85oUPwJDzq",
-    ss = "https://discord.com/api/webhooks/1434514181784076380/PHs_Hw8sjtqLpAlIaU-GL70DAJZrcx4uAfctubssy53wi3mUFByrL03KxiKT0uIbmgp5"
-}
-function done(p436)
-    if not p436:FindFirstChild("done") then
-        local v437 = Instance.new("Folder")
-        v437.Name = "done"
-        v437.Parent = p436
-    end
-end
-hs = game:GetService("HttpService")
-req = http_request or (request or syn.request)
-playerCount = # game:GetService("Players"):GetPlayers()
-jobid = encode(game.JobId)
-if game.PlaceId ~= 6381829480 then
-    if game.PlaceId == 15759515082 then
-        spawn(function()
-            while task.wait(1) do
-                pcall(function()
-                    local v438, v439, v440 = pairs(game.Workspace.SeaMonster:GetChildren())
-                    while true do
-                        local v441
-                        v440, v441 = v438(v439, v440)
-                        if v440 == nil then
-                            break
-                        end
-                        if string.find(v441.Name, "Galleon") and not v441:FindFirstChild("done") then
-                            done(v441)
-                            local v442 = req
-                            local v443 = {
-                                Url = _G.webhook.ks,
-                                Method = "POST",
-                                Headers = {
-                                    ["Content-Type"] = "application/json"
-                                }
-                            }
-                            local v444 = hs
-                            local v445 = v444.JSONEncode
-                            local v446 = {
-                                embeds = {
-                                    {
-                                        title = "```" .. v441.Name .. "```",
-                                        color = 7498202,
-                                        fields = {
-                                            {
-                                                name = "Player Count",
-                                                value = "```" .. playerCount .. "/12```",
-                                                inline = true
-                                            },
-                                            {
-                                                name = "Code Pc",
-                                                value = "```" .. jobid .. "```",
-                                                inline = true
-                                            },
-                                            {
-                                                name = "Code Mobile",
-                                                value = "" .. jobid .. "",
-                                                inline = true
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            v443.Body = v445(v444, v446)
-                            v442(v443)
-                        end
-                    end
-                end)
-            end
-        end)
-        spawn(function()
-            while task.wait(1) do
-                pcall(function()
-                    local v447, v448, v449 = pairs(game:GetService("Workspace").Island:GetChildren())
-                    while true do
-                        local v450
-                        v449, v450 = v447(v448, v449)
-                        if v449 == nil then
-                            break
-                        end
-                        if (string.find(v450.Name, "Human") or (string.find(v450.Name, "Gale") or (string.find(v450.Name, "SeaKing") or (string.find(v450.Name, "Angel") or (string.find(v450.Name, "Animal") or (string.find(v450.Name, "Fish") or string.find(v450.Name, "Demon"))))))) and not v450:FindFirstChild("done") then
-                            done(v450)
-                            local v451 = req
-                            local v452 = {
-                                Url = _G.webhook.race,
-                                Method = "POST",
-                                Headers = {
-                                    ["Content-Type"] = "application/json"
-                                },
-                                Body = hs:JSONEncode({
-                                    embeds = {
-                                        {
-                                            title = "```" .. v450.Name .. "```",
-                                            color = 7498202,
-                                            fields = {
-                                                {
-                                                    name = "Player Count",
-                                                    value = "```" .. playerCount .. "/12```",
-                                                    inline = true
-                                                },
-                                                {
-                                                    name = "Code Pc",
-                                                    value = "```" .. jobid .. "```",
-                                                    inline = true
-                                                },
-                                                {
-                                                    name = "Code Mobile",
-                                                    value = "" .. jobid .. "",
-                                                    inline = true
-                                                }
-                                            }
-                                        }
-                                    }
-                                })
-                            }
-                            v451(v452)
-                        end
-                    end
-                end)
-            end
-        end)
-        spawn(function()
-            while task.wait(1) do
-                pcall(function()
-                    local v453, v454, v455 = pairs(game.Workspace.SeaMonster:GetChildren())
-                    while true do
-                        local v456
-                        v455, v456 = v453(v454, v455)
-                        if v455 == nil then
-                            break
-                        end
-                        if not (string.find(v456.Name, "Galleon") or v456:FindFirstChild("done")) then
-                            done(v456)
-                            local v457 = req
-                            local v458 = {
-                                Url = _G.webhook.ss,
-                                Method = "POST",
-                                Headers = {
-                                    ["Content-Type"] = "application/json"
-                                }
-                            }
-                            local v459 = hs
-                            local v460 = v459.JSONEncode
-                            local v461 = {
-                                embeds = {
-                                    {
-                                        title = "```" .. v456.Name .. "```",
-                                        color = 7498202,
-                                        fields = {
-                                            {
-                                                name = "Player Count",
-                                                value = "```" .. playerCount .. "/12```",
-                                                inline = true
-                                            },
-                                            {
-                                                name = "Code Pc",
-                                                value = "```" .. jobid .. "```",
-                                                inline = true
-                                            },
-                                            {
-                                                name = "Code Mobile",
-                                                value = "" .. jobid .. "",
-                                                inline = true
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            v458.Body = v460(v459, v461)
-                            v457(v458)
-                        end
-                    end
-                end)
-            end
-        end)
-        spawn(function()
-            while task.wait(1) do
-                pcall(function()
-                    _G.karken = false
-                    local v462, v463, v464 = pairs(game.Workspace.Monster:GetChildren())
-                    while true do
-                        local v465
-                        v464, v465 = v462(v463, v464)
-                        if v464 == nil then
-                            break
-                        end
-                        if v465.Name == "Boss" and v465:FindFirstChild("FuryTentacle") then
-                            _G.karken = true
-                        end
-                    end
-                    if _G.karken then
-                        if not game.Workspace.Monster.Boss:FindFirstChild("done") then
-                            done(game.Workspace.Monster.Boss)
-                            local v466 = req
-                            local v467 = {
-                                Url = _G.webhook.ss,
-                                Method = "POST",
-                                Headers = {
-                                    ["Content-Type"] = "application/json"
-                                }
-                            }
-                            local v468 = hs
-                            local v469 = v468.JSONEncode
-                            local v470 = {
-                                embeds = {
-                                    {
-                                        title = "```Kraken```",
-                                        color = 7498202,
-                                        fields = {
-                                            {
-                                                name = "Player Count",
-                                                value = "```" .. playerCount .. "/12```",
-                                                inline = true
-                                            },
-                                            {
-                                                name = "Code Pc",
-                                                value = "```" .. jobid .. "```",
-                                                inline = true
-                                            },
-                                            {
-                                                name = "Code Mobile",
-                                                value = "" .. jobid .. "",
-                                                inline = true
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            v467.Body = v469(v468, v470)
-                            v466(v467)
-                        end
-                    elseif game.Workspace.Monster.Boss:FindFirstChild("done") then
-                        game.Workspace.Monster.Boss:FindFirstChild("done"):Destroy()
-                    end
-                end)
-            end
-        end)
-    end
-else
-    spawn(function()
-        while task.wait(1) do
-            pcall(function()
-                local v471, v472, v473 = pairs(game:GetService("Workspace").Island:GetChildren())
-                while true do
-                    local v474
-                    v473, v474 = v471(v472, v473)
-                    if v473 == nil then
-                        break
-                    end
-                    if string.find(v474.Name, "Sea King") or string.find(v474.Name, "Legacy Island") then
-                        if v474:FindFirstChild("HydraStand") and not v474:FindFirstChild("done") then
-                            done(v474)
-                            local v475 = req
-                            local v476 = {
-                                Url = _G.webhook.hd,
-                                Method = "POST",
-                                Headers = {
-                                    ["Content-Type"] = "application/json"
-                                }
-                            }
-                            local v477 = hs
-                            local v478 = v477.JSONEncode
-                            local v479 = {
-                                embeds = {
-                                    {
-                                        title = "```Hydra```",
-                                        color = 7498202,
-                                        fields = {
-                                            {
-                                                name = "Player Count",
-                                                value = "```" .. playerCount .. "/12```",
-                                                inline = true
-                                            },
-                                            {
-                                                name = "Code Pc",
-                                                value = "```" .. jobid .. "```",
-                                                inline = true
-                                            },
-                                            {
-                                                name = "Code Mobile",
-                                                value = "" .. jobid .. "",
-                                                inline = true
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            v476.Body = v478(v477, v479)
-                            v475(v476)
-                        end
-                        if v474:FindFirstChild("ChestSpawner") and not v474:FindFirstChild("done") then
-                            done(v474)
-                            local v480 = req
-                            local v481 = {
-                                Url = _G.webhook.sk,
-                                Method = "POST",
-                                Headers = {
-                                    ["Content-Type"] = "application/json"
-                                }
-                            }
-                            local v482 = hs
-                            local v483 = v482.JSONEncode
-                            local v484 = {
-                                embeds = {
-                                    {
-                                        title = "```Seaking```",
-                                        color = 7498202,
-                                        fields = {
-                                            {
-                                                name = "Player Count",
-                                                value = "```" .. playerCount .. "/12```",
-                                                inline = true
-                                            },
-                                            {
-                                                name = "Code Pc",
-                                                value = "```" .. jobid .. "```",
-                                                inline = true
-                                            },
-                                            {
-                                                name = "Code Mobile",
-                                                value = "" .. jobid .. "",
-                                                inline = true
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            v481.Body = v483(v482, v484)
-                            v480(v481)
-                        end
-                    end
-                end
-            end)
-        end
-    end)
-    spawn(function()
-        while task.wait(1) do
-            pcall(function()
-                if game.Workspace.GhostMonster:FindFirstChild("Ghost Ship") and (game.Workspace.GhostMonster:FindFirstChild("Ghost Ship").Humanoid.Health > 0 and (game.Workspace.GhostMonster["Ghost Ship"]:FindFirstChild("HumanoidRootPart") and not game.Workspace.GhostMonster["Ghost Ship"]:FindFirstChild("done"))) then
-                    done(game.Workspace.GhostMonster["Ghost Ship"])
-                    local v485 = req
-                    local v486 = {
-                        Url = _G.webhook.gs,
-                        Method = "POST",
-                        Headers = {
-                            ["Content-Type"] = "application/json"
-                        },
-                        Body = hs:JSONEncode({
-                            embeds = {
-                                {
-                                    title = "```Ghost Ship```",
-                                    color = 7498202,
-                                    fields = {
-                                        {
-                                            name = "Player Count",
-                                            value = "```" .. playerCount .. "/12```",
-                                            inline = true
-                                        },
-                                        {
-                                            name = "Code Pc",
-                                            value = "```" .. jobid .. "```",
-                                            inline = true
-                                        },
-                                        {
-                                            name = "Code Mobile",
-                                            value = "" .. jobid .. "",
-                                            inline = true
-                                        }
-                                    }
-                                }
-                            }
-                        })
-                    }
-                    v485(v486)
-                end
-            end)
-        end
-    end)
-end
-local function vu495(p487, p488)
-    data = ""
-    local v489 = p488 or 0
-    local v490 = string.rep("  ", v489)
-    if typeof(p487) == "table" then
-        local v491, v492, v493 = pairs(p487)
-        while true do
-            local v494
-            v493, v494 = v491(v492, v493)
-            if v493 == nil then
-                break
-            end
-            if typeof(v494) ~= "table" then
-                if data ~= "" then
-                    data = data .. "\n" .. v490 .. "" .. tostring(v493)
-                else
-                    data = v490 .. "" .. tostring(v493)
-                end
-            else
-                print(v490 .. "[" .. tostring(v493) .. "] = {")
-                vu495(v494, v489 + 1)
-                print(v490 .. "}")
-            end
-        end
-    else
-        print(v490 .. tostring(p487))
-    end
-end
-vu495(game:GetService("ReplicatedStorage").Chest.Remotes.Functions.GetDFShop:InvokeServer())
-local v496 = req
-local v497 = {
-    Url = "https://discord.com/api/webhooks/1443254589859041372/71fLy3Fqn8iLGR5lbJ8h9mF9m4510RdU9WVvZspEqzyweKQf8BhKkRVeF3fstT6UlQY3",
-    Method = "POST",
-    Headers = {
-        ["Content-Type"] = "application/json"
-    },
-    Body = hs:JSONEncode({
-        embeds = {
-            {
-                title = "```Notification```",
-                color = 7498202,
-                fields = {
-                    {
-                        name = "Stock Fruit",
-                        value = "```" .. data .. "```",
-                        inline = true
-                    }
-                }
-            }
-        }
-    })
-}
-v496(v497)
 pcall(function()
     if setfpscap then
         setfpscap(0)
